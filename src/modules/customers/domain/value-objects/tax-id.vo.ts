@@ -1,5 +1,5 @@
 import { ValueObject } from '@/shared/kernel/value-object';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 interface TaxIdProps {
   value: string;
@@ -17,7 +17,7 @@ export class TaxId extends ValueObject<TaxIdProps> {
   static create(cpf: string): TaxId {
     const digits = cpf.replace(/\D/g, '');
     if (!TaxId.isValid(digits)) {
-      throw new DomainException(`Invalid CPF: ${cpf}`);
+      throw new DomainError(`Invalid CPF: ${cpf}`);
     }
     return new TaxId({ value: digits });
   }

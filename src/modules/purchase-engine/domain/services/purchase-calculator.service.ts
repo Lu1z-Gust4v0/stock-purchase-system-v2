@@ -1,5 +1,5 @@
 import { PurchaseOrderItem } from '@/modules/purchase-engine/domain/purchase-order.entity';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 export interface BasketAllocation {
   ticker: string;
@@ -22,9 +22,7 @@ export class PurchaseCalculatorService {
     return basket.map((item) => {
       const price = prices.get(item.ticker);
       if (price === undefined || price <= 0) {
-        throw new DomainException(
-          `No valid price found for ticker ${item.ticker}`,
-        );
+        throw new DomainError(`No valid price found for ticker ${item.ticker}`);
       }
 
       const allocation = (item.allocationPercentage / 100) * totalAmount;

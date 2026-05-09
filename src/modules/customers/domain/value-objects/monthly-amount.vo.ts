@@ -1,5 +1,5 @@
 import { ValueObject } from '@/shared/kernel/value-object';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 interface MonthlyAmountProps {
   value: number;
@@ -18,7 +18,7 @@ export class MonthlyAmount extends ValueObject<MonthlyAmountProps> {
 
   static create(amount: number): MonthlyAmount {
     if (amount < MonthlyAmount.MINIMUM) {
-      throw new DomainException(
+      throw new DomainError(
         `Monthly amount must be at least R$ ${MonthlyAmount.MINIMUM}, got R$ ${amount}`,
       );
     }

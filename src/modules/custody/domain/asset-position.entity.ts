@@ -1,5 +1,5 @@
 import { Entity } from '@/shared/kernel/entity';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 export class AssetPosition extends Entity<string> {
   private readonly _ticker: string;
@@ -57,7 +57,7 @@ export class AssetPosition extends Entity<string> {
 
   removeShares(quantity: number): void {
     if (quantity > this._quantity) {
-      throw new DomainException(
+      throw new DomainError(
         `Cannot remove ${quantity} shares from ${this._ticker}: only ${this._quantity} available`,
       );
     }
