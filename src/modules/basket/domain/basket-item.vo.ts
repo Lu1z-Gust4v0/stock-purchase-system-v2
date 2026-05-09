@@ -1,5 +1,5 @@
 import { ValueObject } from '@/shared/kernel/value-object';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 interface BasketItemProps {
   ticker: string;
@@ -20,10 +20,10 @@ export class BasketItem extends ValueObject<BasketItemProps> {
 
   static create(ticker: string, allocationPercentage: number): BasketItem {
     if (!ticker || ticker.trim().length === 0) {
-      throw new DomainException('Ticker cannot be empty');
+      throw new DomainError('Ticker cannot be empty');
     }
     if (allocationPercentage <= 0 || allocationPercentage > 100) {
-      throw new DomainException(
+      throw new DomainError(
         `Allocation percentage must be between 0 and 100, got ${allocationPercentage}`,
       );
     }

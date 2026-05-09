@@ -1,6 +1,6 @@
 import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { BasketItem } from '@/modules/basket/domain/basket-item.vo';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 import { BasketChangedEvent } from '@/shared/events/domain-events/basket-changed.event';
 
 export class RecommendationBasket extends AggregateRoot<string> {
@@ -44,8 +44,9 @@ export class RecommendationBasket extends AggregateRoot<string> {
     items: BasketItem[],
   ): RecommendationBasket {
     if (items.length !== RecommendationBasket.BASKET_SIZE) {
-      throw new DomainException(
+      throw new DomainError(
         `Basket must contain exactly ${RecommendationBasket.BASKET_SIZE} items, got ${items.length}`,
+        422,
       );
     }
 
@@ -54,8 +55,9 @@ export class RecommendationBasket extends AggregateRoot<string> {
       0,
     );
     if (Math.abs(total - 100) > 0.01) {
-      throw new DomainException(
+      throw new DomainError(
         `Basket allocations must sum to 100%, got ${total}%`,
+        422,
       );
     }
 

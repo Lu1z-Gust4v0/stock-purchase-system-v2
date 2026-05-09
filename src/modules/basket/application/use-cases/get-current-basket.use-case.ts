@@ -1,7 +1,7 @@
 import { RecommendationBasket } from '@/modules/basket/domain/recommendation-basket.entity';
 import { BasketRepositoryPort } from '@/modules/basket/application/ports/basket-repository.port';
 import { BasketResponseDto } from '@/modules/basket/application/dtos/basket-response.dto';
-import { DomainException } from '@/shared/exceptions/domain.exception';
+import { DomainError } from '@/shared/errors/domain.exception';
 
 export class GetCurrentBasketUseCase {
   constructor(private readonly basketRepo: BasketRepositoryPort) {}
@@ -9,7 +9,7 @@ export class GetCurrentBasketUseCase {
   async execute(): Promise<BasketResponseDto> {
     const basket = await this.basketRepo.findActive();
     if (!basket) {
-      throw new DomainException('No active recommendation basket found');
+      throw new DomainError('No active recommendation basket found', 404);
     }
     return toDto(basket);
   }
