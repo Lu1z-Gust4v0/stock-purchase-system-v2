@@ -1,4 +1,4 @@
-import { DomainEvent } from './domain-event.interface';
+import { DomainEvent } from '@/shared/events/domain-event.interface';
 
 export const EVENT_BUS_PORT = Symbol('EVENT_BUS_PORT');
 

@@ -1,4 +1,4 @@
-import { DomainEvent } from '../domain-event.interface';
+import { DomainEvent } from '@/shared/events/domain-event.interface';
 
 export class PurchaseExecutedEvent implements DomainEvent {
   readonly occurredAt: Date;
