@@ -1,7 +1,7 @@
 import { AggregateRoot } from '@/shared/kernel/aggregate-root';
-import { TaxId } from '@/modules/customers/domain/value-objects/tax-id.vo';
-import { Email } from '@/modules/customers/domain/value-objects/email.vo';
-import { MonthlyAmount } from '@/modules/customers/domain/value-objects/monthly-amount.vo';
+import { TaxId } from '@/modules/customer/domain/value-objects/tax-id.vo';
+import { Email } from '@/modules/customer/domain/value-objects/email.vo';
+import { MonthlyAmount } from '@/modules/customer/domain/value-objects/monthly-amount.vo';
 
 export class Customer extends AggregateRoot<string> {
   private _name: string;
