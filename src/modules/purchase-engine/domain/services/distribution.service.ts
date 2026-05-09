@@ -1,9 +1,10 @@
 import { PurchaseOrderItem } from '@/modules/purchase-engine/domain/purchase-order.entity';
 import { Distribution, DistributionItem } from '@/modules/purchase-engine/domain/distribution.entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export interface CustomerAllocation {
   customerId: string;
-  amount: number;
+  amount: Money;
 }
 
 export class DistributionService {
@@ -14,12 +15,12 @@ export class DistributionService {
     generateId: () => string,
   ): Distribution[] {
     const totalAmount = customerAllocations.reduce(
-      (sum, a) => sum + a.amount,
-      0,
+      (sum, a) => sum.add(a.amount),
+      Money.zero(),
     );
 
     return customerAllocations.map((allocation) => {
-      const proportion = allocation.amount / totalAmount;
+      const proportion = allocation.amount.amount / totalAmount.amount;
 
       const distributionItems: DistributionItem[] = items.map((item) => {
         const totalQty = item.standardLotQuantity + item.fractionalQuantity;

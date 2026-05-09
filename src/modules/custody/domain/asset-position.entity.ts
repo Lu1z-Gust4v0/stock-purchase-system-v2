@@ -1,16 +1,17 @@
 import { Entity } from '@/shared/kernel/entity';
 import { DomainError } from '@/shared/errors/domain.exception';
+import { Money } from '@/shared/domain/money.vo';
 
 export class AssetPosition extends Entity<string> {
   private readonly _ticker: string;
   private _quantity: number;
-  private _averagePrice: number;
+  private _averagePrice: Money;
 
   private constructor(
     id: string,
     ticker: string,
     quantity: number,
-    averagePrice: number,
+    averagePrice: Money,
   ) {
     super(id);
     this._ticker = ticker;
@@ -24,18 +25,18 @@ export class AssetPosition extends Entity<string> {
   get quantity(): number {
     return this._quantity;
   }
-  get averagePrice(): number {
+  get averagePrice(): Money {
     return this._averagePrice;
   }
-  get totalValue(): number {
-    return this._quantity * this._averagePrice;
+  get totalValue(): Money {
+    return this._averagePrice.multiply(this._quantity);
   }
 
   static create(
     id: string,
     ticker: string,
     quantity: number,
-    averagePrice: number,
+    averagePrice: Money,
   ): AssetPosition {
     return new AssetPosition(id, ticker, quantity, averagePrice);
   }
@@ -44,15 +45,17 @@ export class AssetPosition extends Entity<string> {
     id: string,
     ticker: string,
     quantity: number,
-    averagePrice: number,
+    averagePrice: Money,
   ): AssetPosition {
     return new AssetPosition(id, ticker, quantity, averagePrice);
   }
 
-  addShares(quantity: number, price: number): void {
-    const totalCost = this._quantity * this._averagePrice + quantity * price;
+  addShares(quantity: number, price: Money): void {
+    const totalCost = this._averagePrice
+      .multiply(this._quantity)
+      .add(price.multiply(quantity));
     this._quantity += quantity;
-    this._averagePrice = totalCost / this._quantity;
+    this._averagePrice = totalCost.divide(this._quantity);
   }
 
   removeShares(quantity: number): void {

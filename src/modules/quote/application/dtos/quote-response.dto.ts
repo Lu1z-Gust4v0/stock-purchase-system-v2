@@ -4,7 +4,6 @@ export interface QuoteResponseDto {
   ticker: string;
   date: string;
   closingPrice: number;
-  marketType: string;
 }
 
 export class QuoteResponseMapper {
@@ -12,8 +11,7 @@ export class QuoteResponseMapper {
     return {
       ticker: quote.ticker,
       date: quote.date.toISOString(),
-      closingPrice: quote.closingPrice,
-      marketType: quote.marketType,
+      closingPrice: quote.closingPrice.amount,
     };
   }
 }

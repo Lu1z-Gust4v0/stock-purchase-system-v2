@@ -9,32 +9,36 @@ export class QuoteRepository implements QuoteRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(quote: HistoricalQuote): Promise<void> {
+    const price = quote.closingPrice.amount;
     await this.prisma.quote.upsert({
       where: { date_code: { date: quote.date, code: quote.ticker } },
-      update: { closingPrice: quote.closingPrice },
+      update: { closingPrice: price },
       create: {
         id: quote.id,
         code: quote.ticker,
         date: quote.date,
-        closingPrice: quote.closingPrice,
-        openingPrice: quote.closingPrice,
-        maxPrice: quote.closingPrice,
-        minPrice: quote.closingPrice,
+        closingPrice: price,
+        openingPrice: price,
+        maxPrice: price,
+        minPrice: price,
       },
     });
   }
 
   async saveMany(quotes: HistoricalQuote[]): Promise<void> {
     await this.prisma.quote.createMany({
-      data: quotes.map((q) => ({
-        id: q.id,
-        code: q.ticker,
-        date: q.date,
-        closingPrice: q.closingPrice,
-        openingPrice: q.closingPrice,
-        maxPrice: q.closingPrice,
-        minPrice: q.closingPrice,
-      })),
+      data: quotes.map((q) => {
+        const price = q.closingPrice.amount;
+        return {
+          id: q.id,
+          code: q.ticker,
+          date: q.date,
+          closingPrice: price,
+          openingPrice: price,
+          maxPrice: price,
+          minPrice: price,
+        };
+      }),
       skipDuplicates: true,
     });
   }

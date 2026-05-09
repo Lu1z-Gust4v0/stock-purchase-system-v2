@@ -1,15 +1,16 @@
 import { Entity } from '@/shared/kernel/entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export class HistoricalQuote extends Entity<string> {
   private readonly _ticker: string;
   private readonly _date: Date;
-  private readonly _closingPrice: number;
+  private readonly _closingPrice: Money;
 
   private constructor(
     id: string,
     ticker: string,
     date: Date,
-    closingPrice: number,
+    closingPrice: Money,
   ) {
     super(id);
     this._ticker = ticker;
@@ -23,7 +24,7 @@ export class HistoricalQuote extends Entity<string> {
   get date(): Date {
     return this._date;
   }
-  get closingPrice(): number {
+  get closingPrice(): Money {
     return this._closingPrice;
   }
 
@@ -31,7 +32,7 @@ export class HistoricalQuote extends Entity<string> {
     id: string,
     ticker: string,
     date: Date,
-    closingPrice: number,
+    closingPrice: Money,
   ): HistoricalQuote {
     return new HistoricalQuote(id, ticker, date, closingPrice);
   }

@@ -1,5 +1,6 @@
 import { PurchaseOrderItem } from '@/modules/purchase-engine/domain/purchase-order.entity';
 import { DomainError } from '@/shared/errors/domain.exception';
+import { Money } from '@/shared/domain/money.vo';
 
 export interface BasketAllocation {
   ticker: string;
@@ -7,9 +8,9 @@ export interface BasketAllocation {
 }
 
 export interface PurchaseCalculationInput {
-  totalAmount: number;
+  totalAmount: Money;
   basket: BasketAllocation[];
-  prices: Map<string, number>;
+  prices: Map<string, Money>;
 }
 
 export class PurchaseCalculatorService {
@@ -21,12 +22,12 @@ export class PurchaseCalculatorService {
 
     return basket.map((item) => {
       const price = prices.get(item.ticker);
-      if (price === undefined || price <= 0) {
+      if (price === undefined || !price.isPositive()) {
         throw new DomainError(`No valid price found for ticker ${item.ticker}`);
       }
 
-      const allocation = (item.allocationPercentage / 100) * totalAmount;
-      const totalQuantity = allocation / price;
+      const allocation = totalAmount.multiply(item.allocationPercentage / 100);
+      const totalQuantity = allocation.amount / price.amount;
       const standardLotQuantity =
         Math.floor(
           totalQuantity / PurchaseCalculatorService.STANDARD_LOT_SIZE,
@@ -41,7 +42,10 @@ export class PurchaseCalculatorService {
         standardLotQuantity,
         fractionalQuantity,
         price,
-        totalCost: Number.parseFloat((quantity * price).toFixed(2)),
+        totalCost: Money.fromNumber(
+          Number.parseFloat((quantity * price.amount).toFixed(2)),
+          price.currency,
+        ),
       };
     });
   }

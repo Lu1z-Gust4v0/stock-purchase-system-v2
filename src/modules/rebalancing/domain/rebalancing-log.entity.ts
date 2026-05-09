@@ -1,4 +1,5 @@
 import { Entity } from '@/shared/kernel/entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export enum RebalancingTrigger {
   BASKET_CHANGE = 'BASKET_CHANGE',
@@ -9,7 +10,7 @@ export interface RebalancingAction {
   ticker: string;
   action: 'BUY' | 'SELL';
   quantity: number;
-  price: number;
+  price: Money;
 }
 
 export class RebalancingLog extends Entity<string> {

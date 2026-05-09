@@ -1,5 +1,6 @@
 import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { PurchaseExecutedEvent } from '@/shared/events/domain-events/purchase-executed.event';
+import { Money } from '@/shared/domain/money.vo';
 
 export enum PurchaseOrderStatus {
   PENDING = 'PENDING',
@@ -11,13 +12,13 @@ export interface PurchaseOrderItem {
   ticker: string;
   standardLotQuantity: number;
   fractionalQuantity: number;
-  price: number;
-  totalCost: number;
+  price: Money;
+  totalCost: Money;
 }
 
 export class PurchaseOrder extends AggregateRoot<string> {
   private readonly _executionDate: Date;
-  private readonly _totalAmount: number;
+  private readonly _totalAmount: Money;
   private readonly _items: PurchaseOrderItem[];
   private _status: PurchaseOrderStatus;
   private readonly _createdAt: Date;
@@ -25,7 +26,7 @@ export class PurchaseOrder extends AggregateRoot<string> {
   private constructor(
     id: string,
     executionDate: Date,
-    totalAmount: number,
+    totalAmount: Money,
     items: PurchaseOrderItem[],
     status: PurchaseOrderStatus,
     createdAt: Date,
@@ -41,7 +42,7 @@ export class PurchaseOrder extends AggregateRoot<string> {
   get executionDate(): Date {
     return this._executionDate;
   }
-  get totalAmount(): number {
+  get totalAmount(): Money {
     return this._totalAmount;
   }
   get items(): PurchaseOrderItem[] {
@@ -57,7 +58,7 @@ export class PurchaseOrder extends AggregateRoot<string> {
   static create(
     id: string,
     executionDate: Date,
-    totalAmount: number,
+    totalAmount: Money,
     items: PurchaseOrderItem[],
   ): PurchaseOrder {
     return new PurchaseOrder(
@@ -73,7 +74,7 @@ export class PurchaseOrder extends AggregateRoot<string> {
   static reconstitute(
     id: string,
     executionDate: Date,
-    totalAmount: number,
+    totalAmount: Money,
     items: PurchaseOrderItem[],
     status: PurchaseOrderStatus,
     createdAt: Date,

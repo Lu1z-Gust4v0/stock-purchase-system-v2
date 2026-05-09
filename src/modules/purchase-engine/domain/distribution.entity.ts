@@ -1,9 +1,10 @@
 import { Entity } from '@/shared/kernel/entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export interface DistributionItem {
   ticker: string;
   quantity: number;
-  averagePrice: number;
+  averagePrice: Money;
 }
 
 export class Distribution extends Entity<string> {

@@ -1,4 +1,5 @@
 import { HistoricalQuote } from '@/modules/quote/domain/historical-quote.entity';
+import { Money } from '@/shared/domain/money.vo';
 import { Quote as QuoteRecord } from '@/generated/prisma/client';
 
 export class QuoteMapper {
@@ -7,7 +8,7 @@ export class QuoteMapper {
       record.id,
       record.code,
       record.date,
-      Number(record.closingPrice),
+      Money.fromNumber(Number(record.closingPrice)),
     );
   }
 }

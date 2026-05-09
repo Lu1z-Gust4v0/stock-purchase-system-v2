@@ -7,6 +7,7 @@ import {
   HistoricalQuote,
   MarketType,
 } from '@/modules/quote/domain/historical-quote.entity';
+import { Money } from '@/shared/domain/money.vo';
 
 const ALLOWED_BDI = new Set(['02', '96']);
 
@@ -42,7 +43,9 @@ export class QuoteHistoryParser implements QuoteHistoryParserPort {
       const date = new Date(
         `${datpre.substring(0, 4)}-${datpre.substring(4, 6)}-${datpre.substring(6, 8)}`,
       );
-      const closingPrice = this.parsePrice(line.substring(108, 121));
+      const closingPrice = Money.fromNumber(
+        this.parsePrice(line.substring(108, 121)),
+      );
 
       quotes.push(
         HistoricalQuote.create(

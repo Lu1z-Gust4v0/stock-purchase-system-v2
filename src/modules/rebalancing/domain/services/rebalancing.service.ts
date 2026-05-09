@@ -1,9 +1,10 @@
 import { RebalancingAction } from '@/modules/rebalancing/domain/rebalancing-log.entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export interface CurrentPosition {
   ticker: string;
   quantity: number;
-  averagePrice: number;
+  averagePrice: Money;
 }
 
 export interface BasketAllocation {
@@ -15,8 +16,8 @@ export interface RebalancingInput {
   customerId: string;
   currentPositions: CurrentPosition[];
   targetBasket: BasketAllocation[];
-  prices: Map<string, number>;
-  portfolioValue: number;
+  prices: Map<string, Money>;
+  portfolioValue: Money;
 }
 
 export class RebalancingService {
@@ -30,7 +31,7 @@ export class RebalancingService {
         (item) => item.ticker === position.ticker,
       );
       if (!inNewBasket && position.quantity > 0) {
-        const price = prices.get(position.ticker) ?? 0;
+        const price = prices.get(position.ticker) ?? Money.zero();
         actions.push({
           ticker: position.ticker,
           action: 'SELL',
@@ -46,7 +47,8 @@ export class RebalancingService {
       if (!price) continue;
 
       const targetQuantity = Math.floor(
-        ((item.allocationPercentage / 100) * portfolioValue) / price,
+        ((item.allocationPercentage / 100) * portfolioValue.amount) /
+          price.amount,
       );
       const current = currentPositions.find((p) => p.ticker === item.ticker);
       const currentQuantity = current?.quantity ?? 0;
