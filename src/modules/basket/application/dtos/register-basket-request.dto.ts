@@ -4,5 +4,6 @@ export interface BasketItemInput {
 }
 
 export interface RegisterBasketRequestDto {
+  name: string;
   items: BasketItemInput[];
 }

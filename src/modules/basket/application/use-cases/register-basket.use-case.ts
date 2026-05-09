@@ -25,7 +25,7 @@ export class RegisterBasketUseCase {
     const items = dto.items.map((i) =>
       BasketItem.create(i.ticker, i.allocationPercentage),
     );
-    const basket = RecommendationBasket.create(randomUUID(), items);
+    const basket = RecommendationBasket.create(randomUUID(), dto.name, items);
 
     await this.basketRepo.save(basket);
 

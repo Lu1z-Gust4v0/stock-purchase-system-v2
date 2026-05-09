@@ -7,23 +7,29 @@ export class RecommendationBasket extends AggregateRoot<string> {
   static readonly BASKET_SIZE = 5;
 
   private readonly _items: BasketItem[];
+  private readonly _name: string;
   private _active: boolean;
   private readonly _createdAt: Date;
 
   private constructor(
     id: string,
+    name: string,
     items: BasketItem[],
     active: boolean,
     createdAt: Date,
   ) {
     super(id);
     this._items = items;
+    this._name = name;
     this._active = active;
     this._createdAt = createdAt;
   }
 
   get items(): BasketItem[] {
     return [...this._items];
+  }
+  get name(): string {
+    return this._name;
   }
   get active(): boolean {
     return this._active;
@@ -32,7 +38,11 @@ export class RecommendationBasket extends AggregateRoot<string> {
     return this._createdAt;
   }
 
-  static create(id: string, items: BasketItem[]): RecommendationBasket {
+  static create(
+    id: string,
+    name: string,
+    items: BasketItem[],
+  ): RecommendationBasket {
     if (items.length !== RecommendationBasket.BASKET_SIZE) {
       throw new DomainException(
         `Basket must contain exactly ${RecommendationBasket.BASKET_SIZE} items, got ${items.length}`,
@@ -49,18 +59,19 @@ export class RecommendationBasket extends AggregateRoot<string> {
       );
     }
 
-    const basket = new RecommendationBasket(id, items, true, new Date());
+    const basket = new RecommendationBasket(id, name, items, true, new Date());
     basket.addDomainEvent(new BasketChangedEvent(id));
     return basket;
   }
 
   static reconstitute(
     id: string,
+    name: string,
     items: BasketItem[],
     active: boolean,
     createdAt: Date,
   ): RecommendationBasket {
-    return new RecommendationBasket(id, items, active, createdAt);
+    return new RecommendationBasket(id, name, items, active, createdAt);
   }
 
   deactivate(): void {
