@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Basket {
+  id         String       @id @default(uuid())
+  name       String
+  active     Boolean      @default(true)
+  items      BasketItem[]
+  createdAt  DateTime     @default(now()) @map("created_at")
+  disabledAt DateTime?    @map("disabled_at")
+
+  @@map("baskets")
+}
+
+model BasketItem {
+  id         String   @id @default(uuid())
+  code       String   @db.VarChar(10)
+  percentage Decimal  @db.Decimal(5, 2)
+  basket     Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  basketId   String   @map("basket_id")
+
+  @@map("basket_items")
+}
+
+model Quote {
+  id           String   @id @default(uuid())
+  code         String   @db.VarChar(10)
+  openingPrice Decimal  @db.Decimal(10, 2) @map("opening_price")
+  closingPrice Decimal  @db.Decimal(10, 2) @map("closing_price")
+  maxPrice     Decimal  @db.Decimal(10, 2) @map("max_price")
+  minPrice     Decimal  @db.Decimal(10, 2) @map("min_price")
+  date         DateTime @db.Date @default(now())
+
+  @@unique([date, code])
+  @@map("quotes")
+}
+
+model Client {
+  id                String            @id @default(uuid())
+  name              String            @db.VarChar(255)
+  email             String            @unique @db.VarChar(255)
+  mainDocumentCode  String            @unique @map("main_document_code") @db.VarChar(50)
+  monthlyDeposit    Decimal           @db.Decimal(18, 2) @map("monthly_deposit")
+  active            Boolean           @default(true)
+  graphicalAccount  GraphicalAccount?
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  @@map("clients")
+}
+
+model GraphicalAccount {
+  id             String         @id @default(uuid())
+  account        String         @db.VarChar(255)
+  type           AccountType
+  client         Client         @relation(fields: [clientId], references: [id])
+  clientId       String         @unique @map("client_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  orders         Order[]
+  custodies      Custody[]
+  custodyEvents  CustodyEvent[]
+  currencies     Currency?
+  distributions  Distribution[]
+  taxEvents      TaxEvent[]
+
+  @@map("graphical_accounts")
+}
+
+enum AccountType {
+  MASTER
+  CHILD
+}
+
+model Order {
+  id                 String           @id @default(uuid())
+  code               String           @db.VarChar(10)
+  quantity           Int
+  unitaryPrice       Decimal          @db.Decimal(10, 2) @map("unitary_price")
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @map("graphical_account_id")
+  marketType         MarketType       @map("market_type")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@map("orders")
+}
+
+enum MarketType {
+  SPOT
+  FRACTIONAL
+}
+
+model Custody {
+  id                 String           @id @default(uuid())
+  code               String           @db.VarChar(10)
+  averagePrice       Decimal          @db.Decimal(10, 2) @map("average_price")
+  quantity           Int
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @map("graphical_account_id")
+  updatedAt          DateTime?        @map("updated_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@unique([graphicalAccountId, code])
+  @@map("custodies")
+}
+
+model CustodyEvent {
+  id                 String           @id @default(uuid())
+  code               String           @db.VarChar(10)
+  unitaryPrice       Decimal          @db.Decimal(10, 2) @map("unitary_price")
+  quantity           Int
+  type               CustodyEventType
+  profit             Decimal          @db.Decimal(18, 2)
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @map("graphical_account_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@map("custody_events")
+}
+
+enum CustodyEventType {
+  PURCHASE
+  SALE
+  DISTRIBUTION
+}
+
+model Currency {
+  id                 String           @id @default(uuid())
+  amount             Decimal          @db.Decimal(18, 2)
+  code               CurrencyCode
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @unique @map("graphical_account_id")
+  updatedAt          DateTime?        @map("updated_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@map("currencies")
+}
+
+enum CurrencyCode {
+  BRL
+}
+
+model Distribution {
+  id                 String           @id @default(uuid())
+  amount             Decimal          @db.Decimal(18, 2)
+  code               CurrencyCode
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @map("graphical_account_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@map("distributions")
+}
+
+model TaxEvent {
+  id                 String           @id @default(uuid())
+  type               TaxEventType
+  baseAmount         Decimal          @db.Decimal(18, 2) @map("base_amount")
+  taxAmount          Decimal          @db.Decimal(18, 2) @map("tax_amount")
+  published          Boolean
+  graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
+  graphicalAccountId String           @map("graphical_account_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  @@map("tax_events")
+}
+
+enum TaxEventType {
+  SALE
+  REGULATORY
+}
