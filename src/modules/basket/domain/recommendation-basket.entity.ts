@@ -26,7 +26,7 @@ export class RecommendationBasket extends AggregateRoot<string> {
   }
 
   get items(): BasketItem[] {
-    return [...this._items];
+    return this._items;
   }
   get name(): string {
     return this._name;
