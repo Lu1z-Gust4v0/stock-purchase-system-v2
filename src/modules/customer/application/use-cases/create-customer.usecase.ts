@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerRepositoryPort } from '../ports/customer-repository.port';
+import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.interface';
 import {
   CreateCustomerRequestDto,
   CreateCustomerRequestMapper,
@@ -12,7 +13,10 @@ import { DomainError } from '@/shared/errors/domain.exception';
 
 @Injectable()
 export class CreateCustomerUseCase {
-  constructor(private readonly customerRepo: CustomerRepositoryPort) {}
+  constructor(
+    private readonly customerRepo: CustomerRepositoryPort,
+    private readonly custodyApi: CustodyApiInterface,
+  ) {}
 
   async execute(dto: CreateCustomerRequestDto): Promise<CustomerResponseDto> {
     const existing = await this.customerRepo.findByMainDocumentCode(
@@ -23,6 +27,12 @@ export class CreateCustomerUseCase {
     }
 
     const customer = CreateCustomerRequestMapper.toDomain(dto);
+
+    const graphicalAccount = await this.custodyApi.createGraphicalAccount(
+      customer.id,
+    );
+
+    customer.assignBrokerageAccount(graphicalAccount.id);
 
     await this.customerRepo.save(customer);
 

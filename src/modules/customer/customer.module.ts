@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/shared/infrastructure/prisma/prisma.module';
+import { CustodyModule } from '@/modules/custody/custody.module';
 import {
   CUSTOMER_REPOSITORY,
   CustomerRepositoryPort,
@@ -10,9 +11,13 @@ import { DisableCustomerUseCase } from './application/use-cases/disable-customer
 import { UpdateCustomerDepositUseCase } from './application/use-cases/update-customer-deposit.usecase';
 import { CUSTOMER_API } from './api/customer-api.interface';
 import { CustomerApi } from './api/customer.api';
+import {
+  CUSTODY_API,
+  CustodyApiInterface,
+} from '@/modules/custody/api/custody-api.interface';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CustodyModule],
   providers: [
     {
       provide: CUSTOMER_REPOSITORY,
@@ -20,9 +25,11 @@ import { CustomerApi } from './api/customer.api';
     },
     {
       provide: CreateCustomerUseCase,
-      useFactory: (repo: CustomerRepositoryPort) =>
-        new CreateCustomerUseCase(repo),
-      inject: [CUSTOMER_REPOSITORY],
+      useFactory: (
+        repo: CustomerRepositoryPort,
+        custodyApi: CustodyApiInterface,
+      ) => new CreateCustomerUseCase(repo, custodyApi),
+      inject: [CUSTOMER_REPOSITORY, CUSTODY_API],
     },
     {
       provide: DisableCustomerUseCase,
