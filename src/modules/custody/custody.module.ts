@@ -12,11 +12,14 @@ import { CustodyRepository } from './infrastructure/persistence/prisma/custody.r
 import { GraphicalAccountRepository } from './infrastructure/persistence/prisma/graphical-account.repository';
 import { GetMasterAccountCustodyUseCase } from './application/use-cases/get-master-account-custody.usecase';
 import { UpdateAccountCustodyUseCase } from './application/use-cases/update-account-custody.usecase';
+import { GetAccountCustodyUseCase } from './application/use-cases/get-account-custody.usecase';
 import { CUSTODY_API } from './api/custody-api.interface';
 import { CustodyApi } from './api/custody.api';
+import { CustodyController } from './infrastructure/web/custody.controller';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [CustodyController],
   providers: [
     {
       provide: CUSTODY_REPOSITORY,
@@ -42,12 +45,23 @@ import { CustodyApi } from './api/custody.api';
       inject: [CUSTODY_REPOSITORY],
     },
     {
+      provide: GetAccountCustodyUseCase,
+      useFactory: (custodyRepo: CustodyRepositoryPort) =>
+        new GetAccountCustodyUseCase(custodyRepo),
+      inject: [CUSTODY_REPOSITORY],
+    },
+    {
       provide: CUSTODY_API,
       useFactory: (
         getMaster: GetMasterAccountCustodyUseCase,
         updateCustody: UpdateAccountCustodyUseCase,
-      ) => new CustodyApi(getMaster, updateCustody),
-      inject: [GetMasterAccountCustodyUseCase, UpdateAccountCustodyUseCase],
+        getAccountCustody: GetAccountCustodyUseCase,
+      ) => new CustodyApi(getMaster, updateCustody, getAccountCustody),
+      inject: [
+        GetMasterAccountCustodyUseCase,
+        UpdateAccountCustodyUseCase,
+        GetAccountCustodyUseCase,
+      ],
     },
   ],
   exports: [CUSTODY_API],
