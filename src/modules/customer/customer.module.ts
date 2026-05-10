@@ -11,6 +11,7 @@ import { DisableCustomerUseCase } from './application/use-cases/disable-customer
 import { UpdateCustomerDepositUseCase } from './application/use-cases/update-customer-deposit.usecase';
 import { CUSTOMER_API } from './api/customer-api.interface';
 import { CustomerApi } from './api/customer.api';
+import { CustomerController } from './infrastructure/web/customer.controller';
 import {
   CUSTODY_API,
   CustodyApiInterface,
@@ -18,6 +19,7 @@ import {
 
 @Module({
   imports: [PrismaModule, CustodyModule],
+  controllers: [CustomerController],
   providers: [
     {
       provide: CUSTOMER_REPOSITORY,
