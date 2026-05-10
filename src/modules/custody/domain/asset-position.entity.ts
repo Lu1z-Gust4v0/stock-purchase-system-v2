@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Entity } from '@/shared/kernel/entity';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { Money } from '@/shared/domain/money.vo';
@@ -33,12 +34,11 @@ export class AssetPosition extends Entity<string> {
   }
 
   static create(
-    id: string,
     ticker: string,
     quantity: number,
     averagePrice: Money,
   ): AssetPosition {
-    return new AssetPosition(id, ticker, quantity, averagePrice);
+    return new AssetPosition(randomUUID(), ticker, quantity, averagePrice);
   }
 
   static reconstitute(
