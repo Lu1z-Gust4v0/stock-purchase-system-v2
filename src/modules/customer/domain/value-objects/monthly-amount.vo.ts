@@ -1,8 +1,9 @@
 import { ValueObject } from '@/shared/kernel/value-object';
 import { DomainError } from '@/shared/errors/domain.exception';
+import { Money } from '@/shared/domain/money.vo';
 
 interface MonthlyAmountProps {
-  value: number;
+  value: Money;
 }
 
 export class MonthlyAmount extends ValueObject<MonthlyAmountProps> {
@@ -12,7 +13,7 @@ export class MonthlyAmount extends ValueObject<MonthlyAmountProps> {
     super(props);
   }
 
-  get value(): number {
+  get value(): Money {
     return this.props.value;
   }
 
@@ -22,6 +23,6 @@ export class MonthlyAmount extends ValueObject<MonthlyAmountProps> {
         `Monthly amount must be at least R$ ${MonthlyAmount.MINIMUM}, got R$ ${amount}`,
       );
     }
-    return new MonthlyAmount({ value: amount });
+    return new MonthlyAmount({ value: Money.fromNumber(amount) });
   }
 }

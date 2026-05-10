@@ -1,42 +1,44 @@
 import { AggregateRoot } from '@/shared/kernel/aggregate-root';
-import { TaxId } from '@/modules/customer/domain/value-objects/tax-id.vo';
+import { MainDocumentCode } from '@/modules/customer/domain/value-objects/main-document-code.vo';
 import { Email } from '@/modules/customer/domain/value-objects/email.vo';
 import { MonthlyAmount } from '@/modules/customer/domain/value-objects/monthly-amount.vo';
+import { randomUUID } from 'node:crypto';
+
+export interface CustomerProps {
+  name: string;
+  mainDocumentCode: string;
+  email: string;
+  monthlyAmount: number;
+  active: boolean;
+  brokerageAccountId: string | null;
+  createdAt: Date;
+}
 
 export class Customer extends AggregateRoot<string> {
-  private _name: string;
-  private _taxId: TaxId;
-  private _email: Email;
+  private readonly _name: string;
+  private readonly _mainDocumentCode: MainDocumentCode;
+  private readonly _email: Email;
   private _monthlyAmount: MonthlyAmount;
   private _active: boolean;
   private _brokerageAccountId: string | null;
   private readonly _createdAt: Date;
 
-  private constructor(
-    id: string,
-    name: string,
-    taxId: TaxId,
-    email: Email,
-    monthlyAmount: MonthlyAmount,
-    active: boolean,
-    brokerageAccountId: string | null,
-    createdAt: Date,
-  ) {
+  private constructor(id: string, props: CustomerProps) {
     super(id);
-    this._name = name;
-    this._taxId = taxId;
-    this._email = email;
-    this._monthlyAmount = monthlyAmount;
-    this._active = active;
-    this._brokerageAccountId = brokerageAccountId;
-    this._createdAt = createdAt;
+    this._name = props.name;
+    this._mainDocumentCode = MainDocumentCode.create(props.mainDocumentCode);
+    this._email = Email.create(props.email);
+    this._monthlyAmount = MonthlyAmount.create(props.monthlyAmount);
+    this._active = props.active;
+    this._brokerageAccountId = props.brokerageAccountId;
+    this._createdAt = props.createdAt;
   }
 
   get name(): string {
     return this._name;
   }
-  get taxId(): TaxId {
-    return this._taxId;
+  get mainDocumentCode(): MainDocumentCode {
+    return this._mainDocumentCode;
   }
   get email(): Email {
     return this._email;
@@ -54,45 +56,15 @@ export class Customer extends AggregateRoot<string> {
     return this._createdAt;
   }
 
-  static create(
-    id: string,
-    name: string,
-    taxId: TaxId,
-    email: Email,
-    monthlyAmount: MonthlyAmount,
-  ): Customer {
-    return new Customer(
-      id,
-      name,
-      taxId,
-      email,
-      monthlyAmount,
-      true,
-      null,
-      new Date(),
-    );
+  static create(props: Omit<CustomerProps, 'createdAt'>): Customer {
+    return new Customer(randomUUID(), {
+      ...props,
+      createdAt: new Date(),
+    });
   }
 
-  static reconstitute(
-    id: string,
-    name: string,
-    taxId: TaxId,
-    email: Email,
-    monthlyAmount: MonthlyAmount,
-    active: boolean,
-    brokerageAccountId: string | null,
-    createdAt: Date,
-  ): Customer {
-    return new Customer(
-      id,
-      name,
-      taxId,
-      email,
-      monthlyAmount,
-      active,
-      brokerageAccountId,
-      createdAt,
-    );
+  static reconstitute(id: string, props: CustomerProps): Customer {
+    return new Customer(id, props);
   }
 
   updateMonthlyAmount(amount: MonthlyAmount): void {
