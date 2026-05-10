@@ -8,7 +8,7 @@ export class CustodyRepository implements CustodyRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(custody: AccountCustody): Promise<void> {
-    const custodyOperations = custody.positions.map((position) =>
+    const custodyOperations = Array.from(custody.positions, ([, position]) =>
       this.prisma.custody.upsert({
         where: {
           graphicalAccountId_code: {

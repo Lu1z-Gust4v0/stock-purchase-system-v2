@@ -63,4 +63,9 @@ export class CurrencyPosition extends Entity<string> {
     this._amount = this._amount.subtract(amount);
     this._updatedAt = new Date();
   }
+
+  update(newAmount: Money) {
+    this._amount = newAmount;
+    this._updatedAt = new Date();
+  }
 }

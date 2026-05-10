@@ -54,6 +54,7 @@ export class AssetPosition extends Entity<string> {
     const totalCost = this._averagePrice
       .multiply(this._quantity)
       .add(price.multiply(quantity));
+
     this._quantity += quantity;
     this._averagePrice = totalCost.divide(this._quantity);
   }

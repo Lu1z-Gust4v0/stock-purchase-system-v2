@@ -3,17 +3,18 @@ import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { AssetPosition } from '@/modules/custody/domain/asset-position.entity';
 import { CurrencyPosition } from './currency-position.entity';
 import { CustodyEvent } from './custody-event.entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export class AccountCustody extends AggregateRoot<string> {
   private readonly _graphicalAccountId: string;
-  private _positions: AssetPosition[];
+  private readonly _positions: Map<string, AssetPosition>;
   private readonly _currency: CurrencyPosition;
   private readonly _custodyEvents: CustodyEvent[];
 
   private constructor(
     id: string,
     graphicalAccountId: string,
-    positions: AssetPosition[],
+    positions: Map<string, AssetPosition>,
     currency: CurrencyPosition,
     custodyEvents: CustodyEvent[],
   ) {
@@ -27,8 +28,8 @@ export class AccountCustody extends AggregateRoot<string> {
   get graphicalAccountId(): string {
     return this._graphicalAccountId;
   }
-  get positions(): AssetPosition[] {
-    return [...this._positions];
+  get positions(): Map<string, AssetPosition> {
+    return new Map(this._positions);
   }
   get currency(): CurrencyPosition {
     return this._currency;
@@ -44,7 +45,7 @@ export class AccountCustody extends AggregateRoot<string> {
     return new AccountCustody(
       randomUUID(),
       graphicalAccountId,
-      [],
+      new Map(),
       currency,
       [],
     );
@@ -57,31 +58,50 @@ export class AccountCustody extends AggregateRoot<string> {
     currency: CurrencyPosition,
     custodyEvents: CustodyEvent[] = [],
   ): AccountCustody {
+    const positionsMap = positions.reduce((map, position) => {
+      return map.set(position.ticker, position);
+    }, new Map());
+
     return new AccountCustody(
       id,
       graphicalAccountId,
-      positions,
+      positionsMap as Map<string, AssetPosition>,
       currency,
       custodyEvents,
     );
   }
 
   upsertPosition(position: AssetPosition): void {
-    const index = this._positions.findIndex(
-      (p) => p.ticker === position.ticker,
-    );
-    if (index >= 0) {
-      this._positions[index] = position;
-    } else {
-      this._positions.push(position);
-    }
+    this._positions.set(position.ticker, position);
   }
 
   getPosition(ticker: string): AssetPosition | undefined {
-    return this._positions.find((p) => p.ticker === ticker);
+    return this._positions.get(ticker);
   }
 
-  addCustodyEvent(event: CustodyEvent): void {
+  applyCustodyEvent(event: CustodyEvent) {
     this._custodyEvents.push(event);
+
+    const position = this.getPosition(event.ticker);
+
+    if (!position) {
+      this._positions.set(
+        event.ticker,
+        AssetPosition.create(event.ticker, event.quantity, event.unitaryPrice),
+      );
+      return;
+    }
+
+    if (event.quantity > 0) {
+      position.addShares(event.quantity, event.unitaryPrice);
+    }
+
+    if (event.quantity <= 0) {
+      position.removeShares(Math.abs(event.quantity));
+    }
+  }
+
+  updateBalance(newBalance: Money) {
+    this._currency.update(newBalance);
   }
 }
