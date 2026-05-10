@@ -7,4 +7,6 @@ export interface CustodyApiInterface {
   getMasterAccountCustody(): Promise<AccountCustody>;
 
   updateAccountCustody(dto: UpdateAccountCustodyRequestDto): Promise<void>;
+
+  getAccountCustody(accountId: string): Promise<AccountCustody>;
 }

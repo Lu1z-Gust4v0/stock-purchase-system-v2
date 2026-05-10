@@ -4,12 +4,14 @@ import { UpdateAccountCustodyUseCase } from '../application/use-cases/update-acc
 import { CustodyApiInterface } from './custody-api.interface';
 import { AccountCustody } from '../domain/account-custody.entity';
 import { UpdateAccountCustodyRequestDto } from '../application/ports/update-account-custody-request.dto';
+import { GetAccountCustodyUseCase } from '../application/use-cases/get-account-custody.usecase';
 
 @Injectable()
 export class CustodyApi implements CustodyApiInterface {
   constructor(
     private readonly getMasterAccountUseCase: GetMasterAccountCustodyUseCase,
     private readonly updateAccountCustodyUseCase: UpdateAccountCustodyUseCase,
+    private readonly getAccountCustodyUseCase: GetAccountCustodyUseCase,
   ) {}
 
   async getMasterAccountCustody(): Promise<AccountCustody> {
@@ -20,5 +22,9 @@ export class CustodyApi implements CustodyApiInterface {
     dto: UpdateAccountCustodyRequestDto,
   ): Promise<void> {
     return this.updateAccountCustodyUseCase.execute(dto);
+  }
+
+  async getAccountCustody(accountId: string): Promise<AccountCustody> {
+    return this.getAccountCustodyUseCase.execute(accountId);
   }
 }
