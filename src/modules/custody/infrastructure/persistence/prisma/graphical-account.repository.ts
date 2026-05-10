@@ -8,6 +8,18 @@ import { GraphicalAccountMapper } from '../mappers/graphical-account.mapper';
 export class GraphicalAccountRepository implements GraphicalAccountRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
+  async save(account: GraphicalAccount): Promise<void> {
+    await this.prisma.graphicalAccount.create({
+      data: {
+        id: account.id,
+        clientId: account.clientId,
+        account: account.account,
+        type: account.type,
+        createdAt: account.createdAt,
+      },
+    });
+  }
+
   async findByClientId(clientId: string): Promise<GraphicalAccount | null> {
     const record = await this.prisma.graphicalAccount.findUnique({
       where: { clientId },

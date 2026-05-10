@@ -13,6 +13,7 @@ import { GraphicalAccountRepository } from './infrastructure/persistence/prisma/
 import { GetMasterAccountCustodyUseCase } from './application/use-cases/get-master-account-custody.usecase';
 import { UpdateAccountCustodyUseCase } from './application/use-cases/update-account-custody.usecase';
 import { GetAccountCustodyUseCase } from './application/use-cases/get-account-custody.usecase';
+import { CreateGraphicalAccountUseCase } from './application/use-cases/create-graphical-account.usecase';
 import { CUSTODY_API } from './api/custody-api.interface';
 import { CustodyApi } from './api/custody.api';
 import { CustodyController } from './infrastructure/web/custody.controller';
@@ -28,6 +29,12 @@ import { CustodyController } from './infrastructure/web/custody.controller';
     {
       provide: GRAPHICAL_ACCOUNT_REPOSITORY,
       useClass: GraphicalAccountRepository,
+    },
+    {
+      provide: CreateGraphicalAccountUseCase,
+      useFactory: (graphicalAccountRepo: GraphicalAccountRepositoryPort) =>
+        new CreateGraphicalAccountUseCase(graphicalAccountRepo),
+      inject: [GRAPHICAL_ACCOUNT_REPOSITORY],
     },
     {
       provide: GetMasterAccountCustodyUseCase,
@@ -53,11 +60,13 @@ import { CustodyController } from './infrastructure/web/custody.controller';
     {
       provide: CUSTODY_API,
       useFactory: (
+        createGraphicalAccount: CreateGraphicalAccountUseCase,
         getMaster: GetMasterAccountCustodyUseCase,
         updateCustody: UpdateAccountCustodyUseCase,
         getAccountCustody: GetAccountCustodyUseCase,
-      ) => new CustodyApi(getMaster, updateCustody, getAccountCustody),
+      ) => new CustodyApi(createGraphicalAccount, getMaster, updateCustody, getAccountCustody),
       inject: [
+        CreateGraphicalAccountUseCase,
         GetMasterAccountCustodyUseCase,
         UpdateAccountCustodyUseCase,
         GetAccountCustodyUseCase,
