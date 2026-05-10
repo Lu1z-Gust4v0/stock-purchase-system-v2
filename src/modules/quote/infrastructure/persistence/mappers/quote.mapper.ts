@@ -4,7 +4,7 @@ import { Quote as QuoteRecord } from '@/generated/prisma/client';
 
 export class QuoteMapper {
   static toDomain(record: QuoteRecord): HistoricalQuote {
-    return HistoricalQuote.create(
+    return HistoricalQuote.reconstitute(
       record.id,
       record.code,
       record.date,

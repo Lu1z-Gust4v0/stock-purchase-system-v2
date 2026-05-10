@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { RecommendationBasket } from '@/modules/basket/domain/recommendation-basket.entity';
 import { BasketItem } from '@/modules/basket/domain/basket-item.vo';
 import { BasketRepositoryPort } from '@/modules/basket/application/ports/basket-repository.port';
@@ -45,7 +44,7 @@ export class RegisterBasketUseCase {
       BasketItem.create(item.ticker, item.allocationPercentage),
     );
 
-    const basket = RecommendationBasket.create(randomUUID(), dto.name, items);
+    const basket = RecommendationBasket.create(dto.name, items);
 
     await this.basketRepo.save(basket);
 

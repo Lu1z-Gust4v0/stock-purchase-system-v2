@@ -1,19 +1,15 @@
 import * as fs from 'node:fs';
 import * as readline from 'node:readline';
-import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { QuoteHistoryParserPort } from '@/modules/quote/application/ports/quote-history-parser.port';
-import {
-  HistoricalQuote,
-  MarketType,
-} from '@/modules/quote/domain/historical-quote.entity';
+import { HistoricalQuote } from '@/modules/quote/domain/historical-quote.entity';
 import { Money } from '@/shared/domain/money.vo';
 
 const ALLOWED_BDI = new Set(['02', '96']);
 
-const TPMERC_TO_MARKET_TYPE: Record<string, MarketType> = {
-  '010': MarketType.SPOT,
-  '020': MarketType.FRACTIONAL,
+const TPMERC_TO_MARKET_TYPE: Record<string, string> = {
+  '010': 'SPOT',
+  '020': 'FRACTIONAL',
 };
 
 @Injectable()
@@ -47,15 +43,7 @@ export class QuoteHistoryParser implements QuoteHistoryParserPort {
         this.parsePrice(line.substring(108, 121)),
       );
 
-      quotes.push(
-        HistoricalQuote.create(
-          randomUUID(),
-          ticker,
-          date,
-          closingPrice,
-          marketType,
-        ),
-      );
+      quotes.push(HistoricalQuote.create(ticker, date, closingPrice));
     }
 
     return quotes;

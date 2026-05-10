@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Entity } from '@/shared/kernel/entity';
 import { Money } from '@/shared/domain/money.vo';
 
@@ -29,6 +30,14 @@ export class HistoricalQuote extends Entity<string> {
   }
 
   static create(
+    ticker: string,
+    date: Date,
+    closingPrice: Money,
+  ): HistoricalQuote {
+    return new HistoricalQuote(randomUUID(), ticker, date, closingPrice);
+  }
+
+  static reconstitute(
     id: string,
     ticker: string,
     date: Date,

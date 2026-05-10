@@ -30,9 +30,9 @@ import { QuotesApi } from '@/modules/quote/api/quotes.api';
     },
     {
       provide: GetHistoricalQuotesUseCase,
-      useFactory: (parser: QuoteHistoryParserPort) =>
-        new GetHistoricalQuotesUseCase(parser),
-      inject: [QUOTE_HISTORY_PARSER_PORT],
+      useFactory: (repo: QuoteRepositoryPort, parser: QuoteHistoryParserPort) =>
+        new GetHistoricalQuotesUseCase(repo, parser),
+      inject: [QUOTE_REPOSITORY_PORT, QUOTE_HISTORY_PARSER_PORT],
     },
     {
       provide: GetQuoteUseCase,

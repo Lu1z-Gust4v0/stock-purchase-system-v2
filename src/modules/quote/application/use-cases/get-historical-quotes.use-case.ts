@@ -6,9 +6,13 @@ import {
   QuoteResponseDto,
   QuoteResponseMapper,
 } from '@/modules/quote/application/dtos/quote-response.dto';
+import { QuoteRepositoryPort } from '../ports/quote-repository.port';
 
 export class GetHistoricalQuotesUseCase {
-  constructor(private readonly parser: QuoteHistoryParserPort) {}
+  constructor(
+    private readonly quoteRepo: QuoteRepositoryPort,
+    private readonly parser: QuoteHistoryParserPort,
+  ) {}
 
   async execute(
     dto: GetHistoricalQuotesRequestDto,
@@ -31,6 +35,8 @@ export class GetHistoricalQuotesUseCase {
         404,
       );
     }
+
+    await this.quoteRepo.saveMany(matched);
 
     return matched.map((q) => QuoteResponseMapper.toResponse(q));
   }

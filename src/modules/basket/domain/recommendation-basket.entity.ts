@@ -2,6 +2,7 @@ import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { BasketItem } from '@/modules/basket/domain/basket-item.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { BasketChangedEvent } from '@/shared/events/domain-events/basket-changed.event';
+import { randomUUID } from 'node:crypto';
 
 export class RecommendationBasket extends AggregateRoot<string> {
   static readonly BASKET_SIZE = 5;
@@ -38,11 +39,7 @@ export class RecommendationBasket extends AggregateRoot<string> {
     return this._createdAt;
   }
 
-  static create(
-    id: string,
-    name: string,
-    items: BasketItem[],
-  ): RecommendationBasket {
+  static create(name: string, items: BasketItem[]): RecommendationBasket {
     if (items.length !== RecommendationBasket.BASKET_SIZE) {
       throw new DomainError(
         `Basket must contain exactly ${RecommendationBasket.BASKET_SIZE} items, got ${items.length}`,
@@ -60,9 +57,15 @@ export class RecommendationBasket extends AggregateRoot<string> {
         422,
       );
     }
-
-    const basket = new RecommendationBasket(id, name, items, true, new Date());
-    basket.addDomainEvent(new BasketChangedEvent(id));
+    const basketId = randomUUID();
+    const basket = new RecommendationBasket(
+      basketId,
+      name,
+      items,
+      true,
+      new Date(),
+    );
+    basket.addDomainEvent(new BasketChangedEvent(basketId));
     return basket;
   }
 

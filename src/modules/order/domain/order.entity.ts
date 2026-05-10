@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Money } from '@/shared/domain/money.vo';
 import { Entity } from '@/shared/kernel/entity';
 
@@ -42,12 +43,8 @@ export class Order extends Entity<string> {
     return this._createdAt;
   }
 
-  static create(
-    id: string,
-    brokerageAccountId: string,
-    items: OrderItem[],
-  ): Order {
-    return new Order(id, brokerageAccountId, items, new Date());
+  static create(brokerageAccountId: string, items: OrderItem[]): Order {
+    return new Order(randomUUID(), brokerageAccountId, items, new Date());
   }
 
   static reconstitute(
