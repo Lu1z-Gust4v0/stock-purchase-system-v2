@@ -1,0 +1,47 @@
+import { Injectable } from '@nestjs/common';
+import { CustomerApiInterface } from './customer-api.interface';
+import { CreateCustomerUseCase } from '../application/use-cases/create-customer.usecase';
+import { DisableCustomerUseCase } from '../application/use-cases/disable-customer.usecase';
+import { UpdateCustomerDepositUseCase } from '../application/use-cases/update-customer-deposit.usecase';
+import { CreateCustomerRequestDto } from '../application/dtos/create-customer-request.dto';
+import { CustomerResponseDto } from '../application/dtos/customer-response.dto';
+import type { CustomerRepositoryPort } from '../application/ports/customer-repository.port';
+import { Money } from '@/shared/domain/money.vo';
+
+@Injectable()
+export class CustomerApi implements CustomerApiInterface {
+  constructor(
+    private readonly createCustomerUseCase: CreateCustomerUseCase,
+    private readonly disableCustomerUseCase: DisableCustomerUseCase,
+    private readonly updateCustomerDepositUseCase: UpdateCustomerDepositUseCase,
+    private readonly customerRepo: CustomerRepositoryPort,
+  ) {}
+
+  async createCustomer(
+    dto: CreateCustomerRequestDto,
+  ): Promise<CustomerResponseDto> {
+    return this.createCustomerUseCase.execute(dto);
+  }
+
+  async disableCustomer(customerId: string): Promise<void> {
+    return this.disableCustomerUseCase.execute(customerId);
+  }
+
+  async updateCustomerDeposit(
+    customerId: string,
+    monthlyDeposit: number,
+  ): Promise<void> {
+    return this.updateCustomerDepositUseCase.execute(
+      customerId,
+      monthlyDeposit,
+    );
+  }
+
+  async countActiveClients(): Promise<number> {
+    return await this.customerRepo.countActiveClients();
+  }
+
+  async getMonthlyTotalClientDeposit(): Promise<Money> {
+    return await this.customerRepo.getMonthlyTotalClientDeposit();
+  }
+}
