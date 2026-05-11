@@ -12,4 +12,9 @@ export interface CustodyApiInterface {
   updateAccountCustody(dto: UpdateAccountCustodyRequestDto): Promise<void>;
 
   getAccountCustody(accountId: string): Promise<AccountCustody>;
+
+  getMonthlySalesVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number>;
 }

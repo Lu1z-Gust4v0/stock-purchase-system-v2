@@ -64,12 +64,21 @@ import { CustodyController } from './infrastructure/web/custody.controller';
         getMaster: GetMasterAccountCustodyUseCase,
         updateCustody: UpdateAccountCustodyUseCase,
         getAccountCustody: GetAccountCustodyUseCase,
-      ) => new CustodyApi(createGraphicalAccount, getMaster, updateCustody, getAccountCustody),
+        custodyRepo: CustodyRepositoryPort,
+      ) =>
+        new CustodyApi(
+          createGraphicalAccount,
+          getMaster,
+          updateCustody,
+          getAccountCustody,
+          custodyRepo,
+        ),
       inject: [
         CreateGraphicalAccountUseCase,
         GetMasterAccountCustodyUseCase,
         UpdateAccountCustodyUseCase,
         GetAccountCustodyUseCase,
+        CUSTODY_REPOSITORY,
       ],
     },
   ],

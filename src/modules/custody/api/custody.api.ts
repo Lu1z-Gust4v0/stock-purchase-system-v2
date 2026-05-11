@@ -7,6 +7,7 @@ import { CustodyApiInterface } from './custody-api.interface';
 import { AccountCustody } from '../domain/account-custody.entity';
 import { GraphicalAccount } from '../domain/graphical-account.entity';
 import { UpdateAccountCustodyRequestDto } from '../application/ports/update-account-custody-request.dto';
+import { type CustodyRepositoryPort } from '../application/ports/custody-repository.port';
 
 @Injectable()
 export class CustodyApi implements CustodyApiInterface {
@@ -15,6 +16,7 @@ export class CustodyApi implements CustodyApiInterface {
     private readonly getMasterAccountUseCase: GetMasterAccountCustodyUseCase,
     private readonly updateAccountCustodyUseCase: UpdateAccountCustodyUseCase,
     private readonly getAccountCustodyUseCase: GetAccountCustodyUseCase,
+    private readonly custodyRepo: CustodyRepositoryPort,
   ) {}
 
   async createGraphicalAccount(clientId: string): Promise<GraphicalAccount> {
@@ -33,5 +35,12 @@ export class CustodyApi implements CustodyApiInterface {
 
   async getAccountCustody(accountId: string): Promise<AccountCustody> {
     return this.getAccountCustodyUseCase.execute(accountId);
+  }
+
+  async getMonthlySalesVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number> {
+    return this.custodyRepo.getMonthlySalesVolume(accountId, referenceDate);
   }
 }
