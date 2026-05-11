@@ -17,4 +17,9 @@ export interface CustodyApiInterface {
     accountId: string,
     referenceDate: Date,
   ): Promise<number>;
+
+  getMonthlyProfitVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number>;
 }

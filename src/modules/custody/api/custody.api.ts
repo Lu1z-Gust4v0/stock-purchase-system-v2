@@ -43,4 +43,11 @@ export class CustodyApi implements CustodyApiInterface {
   ): Promise<number> {
     return this.custodyRepo.getMonthlySalesVolume(accountId, referenceDate);
   }
+
+  async getMonthlyProfitVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number> {
+    return this.custodyRepo.getMonthlyProfitVolume(accountId, referenceDate);
+  }
 }
