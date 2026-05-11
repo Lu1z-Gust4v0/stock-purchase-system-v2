@@ -39,7 +39,7 @@ export class PublishTaxUseCase {
       dto.graphicalAccountId,
     );
 
-    await this.publisher.publishWithholdingTax({
+    this.publisher.publishWithholdingTax({
       clientId: dto.clientId,
       cpf: dto.mainDocumentCode,
       ticker: dto.ticker,
@@ -62,7 +62,7 @@ export class PublishTaxUseCase {
       dto.graphicalAccountId,
     );
 
-    await this.publisher.publishSaleTax({
+    this.publisher.publishSaleTax({
       clientId: dto.clientId,
       cpf: dto.mainDocumentCode,
       referenceMonth: dto.referenceMonth,
