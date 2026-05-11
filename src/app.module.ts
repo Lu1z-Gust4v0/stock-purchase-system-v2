@@ -3,9 +3,10 @@ import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
 import { BasketModule } from '@/modules/basket/basket.module';
 import { QuoteModule } from '@/modules/quote/quote.module';
+import { PurchaseEngineModule } from '@/modules/purchase-engine/purchase-engine.module';
 
 @Module({
-  imports: [BasketModule, QuoteModule],
+  imports: [BasketModule, QuoteModule, PurchaseEngineModule],
   controllers: [AppController],
   providers: [AppService],
 })
