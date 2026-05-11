@@ -89,4 +89,33 @@ export class CustodyRepository implements CustodyRepositoryPort {
       CurrencyMapper.toDomain(currency),
     );
   }
+
+  async getMonthlySalesVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number> {
+    const { startOfMonth, startOfNextMonth } =
+      this.getMonthBoundary(referenceDate);
+
+    const [{ total }] = await this.prisma.$queryRaw<[{ total: string | null }]>`
+      SELECT COALESCE(SUM(ABS(quantity) * unitary_price), 0) AS total
+      FROM custody_events
+      WHERE graphical_account_id = ${accountId}
+        AND type = 'SALE'
+        AND created_at >= ${startOfMonth}
+        AND created_at < ${startOfNextMonth}
+    `;
+
+    return total ? Number.parseFloat(total) : 0;
+  }
+
+  private getMonthBoundary(referenceDate: Date) {
+    const year = referenceDate.getUTCFullYear();
+    const month = referenceDate.getUTCMonth();
+
+    const startOfMonth = new Date(Date.UTC(year, month, 1));
+    const startOfNextMonth = new Date(Date.UTC(year, month + 1, 1));
+
+    return { startOfMonth, startOfNextMonth };
+  }
 }
