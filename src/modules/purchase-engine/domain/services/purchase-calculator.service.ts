@@ -1,52 +1,101 @@
-import { PurchaseOrderItem } from '@/modules/purchase-engine/domain/purchase-order.entity';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { Money } from '@/shared/domain/money.vo';
+import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
+import { MarketType } from '@/modules/order/domain/order.entity';
 
-export interface BasketAllocation {
+export interface PurchaseItem {
   ticker: string;
   allocationPercentage: number;
 }
 
 export interface PurchaseCalculationInput {
+  masterCustody: AccountCustodyResponseDto;
   totalAmount: Money;
-  basket: BasketAllocation[];
+  items: PurchaseItem[];
   prices: Map<string, Money>;
 }
 
-export class PurchaseCalculatorService {
+export interface PurchaseOrderItem {
+  ticker: string;
+  quantity: number;
+  unitaryPrice: Money;
+  marketType: MarketType;
+}
+
+export interface PurchaseOrder {
+  orders: PurchaseOrderItem[];
+  leftovers: Money;
+}
+
+export class PurchaseOrderCalculatorService {
   // B3 standard lot is 100 shares; remainder goes to fractional market
+  static readonly FRACTIONAL_TICKER_SUFFIX = 'F';
   static readonly STANDARD_LOT_SIZE = 100;
 
-  calculate(input: PurchaseCalculationInput): PurchaseOrderItem[] {
-    const { totalAmount, basket, prices } = input;
+  static calculate(input: PurchaseCalculationInput): PurchaseOrder {
+    const { masterCustody, totalAmount, items, prices } = input;
 
-    return basket.map((item) => {
-      const price = prices.get(item.ticker);
-      if (price === undefined || !price.isPositive()) {
-        throw new DomainError(`No valid price found for ticker ${item.ticker}`);
-      }
+    const orders: PurchaseOrderItem[] = [];
+    const purchaseAmount = Money.zero();
+
+    items.forEach((item) => {
+      const price = this.getPriceOrThrow(item.ticker, prices);
 
       const allocation = totalAmount.multiply(item.allocationPercentage / 100);
-      const totalQuantity = allocation.amount / price.amount;
-      const standardLotQuantity =
-        Math.floor(
-          totalQuantity / PurchaseCalculatorService.STANDARD_LOT_SIZE,
-        ) * PurchaseCalculatorService.STANDARD_LOT_SIZE;
-      const fractionalQuantity = Number.parseFloat(
-        (totalQuantity - standardLotQuantity).toFixed(4),
-      );
+      const initialQuantity = Math.floor(allocation.amount / price.amount);
+      const quantityInCustody =
+        masterCustody.positions.get(item.ticker)?.quantity ?? 0;
 
-      const quantity = standardLotQuantity + fractionalQuantity;
-      return {
-        ticker: item.ticker,
-        standardLotQuantity,
-        fractionalQuantity,
-        price,
-        totalCost: Money.fromNumber(
-          Number.parseFloat((quantity * price.amount).toFixed(2)),
-          price.currency,
-        ),
-      };
+      // Use leftovers stocks from master custody
+      const totalQuantity = initialQuantity - quantityInCustody;
+
+      const fractionalQuantity = totalQuantity % this.STANDARD_LOT_SIZE;
+      const standardLotQuantity = totalQuantity - fractionalQuantity;
+
+      // Create Fractional Order (1-99 shares)
+      if (fractionalQuantity > 0) {
+        const fractionalPrice = this.getPriceOrThrow(
+          this.toFractionalTicker(item.ticker),
+          prices,
+        );
+
+        orders.push({
+          marketType: MarketType.FRACTIONAL,
+          quantity: fractionalQuantity,
+          ticker: item.ticker,
+          unitaryPrice: fractionalPrice,
+        });
+
+        purchaseAmount.add(fractionalPrice.multiply(fractionalQuantity));
+      }
+
+      // Create Spot Order (Standard Lot)
+      if (standardLotQuantity >= this.STANDARD_LOT_SIZE) {
+        orders.push({
+          marketType: MarketType.SPOT,
+          quantity: standardLotQuantity,
+          ticker: item.ticker,
+          unitaryPrice: price,
+        });
+
+        purchaseAmount.add(price.multiply(standardLotQuantity));
+      }
     });
+
+    return { orders, leftovers: totalAmount.subtract(purchaseAmount) };
+  }
+
+  static getPriceOrThrow(ticker: string, prices: Map<string, Money>) {
+    const price = prices.get(ticker);
+
+    if (price === undefined || price.amount <= 0) {
+      throw new DomainError(`No valid price found for ticker ${ticker}`);
+    }
+
+    return price;
+  }
+
+  static toFractionalTicker(ticker: string) {
+    return `${ticker}${this.FRACTIONAL_TICKER_SUFFIX}`;
   }
 }
