@@ -23,7 +23,7 @@ export class RegisterBasketUseCase {
 
     const basket = await this.createBasket(dto);
 
-    await this.publishBasketEvents(basket);
+    this.publishBasketEvents(basket);
 
     return BasketResponseDtoMapper.toResponse(basket);
   }
@@ -51,11 +51,9 @@ export class RegisterBasketUseCase {
     return basket;
   }
 
-  private async publishBasketEvents(
-    basket: RecommendationBasket,
-  ): Promise<void> {
+  private publishBasketEvents(basket: RecommendationBasket): void {
     for (const event of basket.domainEvents) {
-      await this.eventBus.publish(event);
+      this.eventBus.publish(event);
     }
 
     basket.clearEvents();
