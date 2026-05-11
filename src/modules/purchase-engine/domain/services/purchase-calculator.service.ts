@@ -36,7 +36,7 @@ export class PurchaseOrderCalculatorService {
     const { masterCustody, totalAmount, items, prices } = input;
 
     const orders: PurchaseOrderItem[] = [];
-    const purchaseAmount = Money.zero();
+    let purchaseAmount = Money.zero();
 
     items.forEach((item) => {
       const price = this.getPriceOrThrow(item.ticker, prices);
@@ -44,7 +44,7 @@ export class PurchaseOrderCalculatorService {
       const allocation = totalAmount.multiply(item.allocationPercentage / 100);
       const initialQuantity = Math.floor(allocation.amount / price.amount);
       const quantityInCustody =
-        masterCustody.positions.get(item.ticker)?.quantity ?? 0;
+        masterCustody.positions[item.ticker]?.quantity ?? 0;
 
       // Use leftovers stocks from master custody
       const totalQuantity = initialQuantity - quantityInCustody;
@@ -66,7 +66,9 @@ export class PurchaseOrderCalculatorService {
           unitaryPrice: fractionalPrice,
         });
 
-        purchaseAmount.add(fractionalPrice.multiply(fractionalQuantity));
+        purchaseAmount = purchaseAmount.add(
+          fractionalPrice.multiply(fractionalQuantity),
+        );
       }
 
       // Create Spot Order (Standard Lot)
@@ -78,7 +80,9 @@ export class PurchaseOrderCalculatorService {
           unitaryPrice: price,
         });
 
-        purchaseAmount.add(price.multiply(standardLotQuantity));
+        purchaseAmount = purchaseAmount.add(
+          price.multiply(standardLotQuantity),
+        );
       }
     });
 

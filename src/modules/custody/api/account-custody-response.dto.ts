@@ -15,20 +15,25 @@ export interface AccountCustodyCurrencyDto {
 
 export interface AccountCustodyResponseDto {
   graphicalAccountId: string;
-  positions: AccountCustodyPositionDto[];
+  positions: Record<string, AccountCustodyPositionDto>;
   currency: AccountCustodyCurrencyDto;
 }
 
 export class AccountCustodyResponseMapper {
   static toDto(custody: AccountCustody): AccountCustodyResponseDto {
-    return {
-      graphicalAccountId: custody.graphicalAccountId,
-      positions: Array.from(custody.positions.values()).map((position) => ({
+    const positions: Record<string, AccountCustodyPositionDto> = {};
+    for (const [ticker, position] of custody.positions) {
+      positions[ticker] = {
         ticker: position.ticker,
         quantity: position.quantity,
         averagePrice: position.averagePrice,
         totalValue: position.totalValue,
-      })),
+      };
+    }
+
+    return {
+      graphicalAccountId: custody.graphicalAccountId,
+      positions,
       currency: {
         code: custody.currency.code,
         amount: custody.currency.amount,
