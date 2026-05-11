@@ -1,9 +1,10 @@
 import { HistoricalQuote } from '@/modules/quote/domain/historical-quote.entity';
+import { Money } from '@/shared/domain/money.vo';
 
 export interface QuoteResponseDto {
   ticker: string;
   date: string;
-  closingPrice: number;
+  closingPrice: Money;
 }
 
 export class QuoteResponseMapper {
@@ -11,7 +12,7 @@ export class QuoteResponseMapper {
     return {
       ticker: quote.ticker,
       date: quote.date.toISOString(),
-      closingPrice: quote.closingPrice.amount,
+      closingPrice: quote.closingPrice,
     };
   }
 }
