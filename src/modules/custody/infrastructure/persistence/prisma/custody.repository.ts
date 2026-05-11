@@ -98,7 +98,26 @@ export class CustodyRepository implements CustodyRepositoryPort {
       this.getMonthBoundary(referenceDate);
 
     const [{ total }] = await this.prisma.$queryRaw<[{ total: string | null }]>`
-      SELECT COALESCE(SUM(ABS(quantity) * unitary_price), 0) AS total
+      SELECT SUM(ABS(quantity) * unitary_price)::TEXT AS total
+      FROM custody_events
+      WHERE graphical_account_id = ${accountId}
+        AND type = 'SALE'
+        AND created_at >= ${startOfMonth}
+        AND created_at < ${startOfNextMonth}
+    `;
+
+    return total ? Number.parseFloat(total) : 0;
+  }
+
+  async getMonthlyProfitVolume(
+    accountId: string,
+    referenceDate: Date,
+  ): Promise<number> {
+    const { startOfMonth, startOfNextMonth } =
+      this.getMonthBoundary(referenceDate);
+
+    const [{ total }] = await this.prisma.$queryRaw<[{ total: string | null }]>`
+      SELECT SUM(profit)::TEXT AS total
       FROM custody_events
       WHERE graphical_account_id = ${accountId}
         AND type = 'SALE'
