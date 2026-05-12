@@ -1,3 +1,5 @@
+import { Money } from '@/shared/domain/money.vo';
+
 export interface CalculateRegulatoryTaxRequestDto {
-  operationValue: number;
+  operationValue: Money;
 }

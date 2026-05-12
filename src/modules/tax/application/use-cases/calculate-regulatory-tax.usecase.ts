@@ -10,7 +10,7 @@ export class CalculateRegulatoryTaxUseCase {
   ): CalculateRegulatoryTaxResponseDto {
     return {
       rate: REGULATORY_TAX_RATE,
-      taxAmount: dto.operationValue * REGULATORY_TAX_RATE,
+      taxAmount: dto.operationValue.multiply(REGULATORY_TAX_RATE),
     };
   }
 }
