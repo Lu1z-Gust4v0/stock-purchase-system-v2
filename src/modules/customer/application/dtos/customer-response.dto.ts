@@ -1,3 +1,4 @@
+import { Money } from '@/shared/domain/money.vo';
 import { Customer } from '../../domain/customer.entity';
 
 export interface CustomerResponseDto {
@@ -5,8 +6,9 @@ export interface CustomerResponseDto {
   name: string;
   mainDocumentCode: string;
   email: string;
-  monthlyDeposit: number;
+  monthlyDeposit: Money;
   active: boolean;
+  graphicalAccountId: string;
   createdAt: string;
 }
 
@@ -17,8 +19,9 @@ export class CustomerResponseMapper {
       name: customer.name,
       mainDocumentCode: customer.mainDocumentCode.value,
       email: customer.email.value,
-      monthlyDeposit: customer.monthlyAmount.value.amount,
+      monthlyDeposit: customer.monthlyAmount.value,
       active: customer.active,
+      graphicalAccountId: customer.brokerageAccountId!,
       createdAt: customer.createdAt.toISOString(),
     };
   }
