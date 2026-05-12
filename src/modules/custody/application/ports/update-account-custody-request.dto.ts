@@ -15,7 +15,7 @@ export interface CustodyChange {
 export interface UpdateAccountCustodyRequestDto {
   graphicalAccountId: string;
   changes: CustodyChange[];
-  newBalance: Money;
+  newBalance?: Money;
 }
 
 export class UpdateAccountCustodyRequestMapper {

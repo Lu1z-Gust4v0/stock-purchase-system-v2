@@ -23,7 +23,9 @@ export class UpdateAccountCustodyUseCase {
 
     events.forEach((event) => custody.applyCustodyEvent(event));
 
-    custody.updateBalance(dto.newBalance);
+    if (dto.newBalance) {
+      custody.updateBalance(dto.newBalance);
+    }
 
     await this.custodyRepo.save(custody);
   }
