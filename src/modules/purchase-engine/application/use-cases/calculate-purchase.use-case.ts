@@ -1,30 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.interface';
-import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.interface';
 import type { QuotesApiInterface } from '@/modules/quote/api/quotes-api.interface';
 import { Money } from '@/shared/domain/money.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
 import { BasketResponseDto } from '@/modules/basket/application/dtos/basket-response.dto';
 import { MarketType } from '@/modules/order/domain/order.entity';
-
-export interface PurchaseItem {
-  ticker: string;
-  allocationPercentage: number;
-}
-
-export interface PurchaseOrderItem {
-  ticker: string;
-  quantity: number;
-  unitaryPrice: Money;
-  marketType: MarketType;
-}
-
-export interface CalculatePurchaseResult {
-  totalAmount: Money;
-  orders: PurchaseOrderItem[];
-  leftovers: Money;
-}
+import {
+  CalculatePurchaseResponse,
+  PurchaseOrderItem,
+} from '../dtos/calculate-purchase-response.dto';
 
 @Injectable()
 export class CalculatePurchaseUseCase {
@@ -34,15 +19,14 @@ export class CalculatePurchaseUseCase {
 
   constructor(
     private readonly customerApi: CustomerApiInterface,
-    private readonly custodyApi: CustodyApiInterface,
     private readonly quotesApi: QuotesApiInterface,
   ) {}
 
   async execute(
+    masterCustody: AccountCustodyResponseDto,
     basket: BasketResponseDto,
     referenceDate: Date,
-  ): Promise<CalculatePurchaseResult> {
-    const masterCustody = await this.custodyApi.getMasterAccountCustody();
+  ): Promise<CalculatePurchaseResponse> {
     const totalAmount = await this.calculatePurchaseAmount(masterCustody);
     const prices = await this.getPricesMap(basket, referenceDate);
 

@@ -28,28 +28,34 @@ export class ExecutePurchaseUseCase {
 
     const masterCustody = await this.custodyApi.getMasterAccountCustody();
 
-    const { totalAmount, orders, leftovers } =
-      await this.calculatePurchase.execute(basket, referenceDate);
+    const result = await this.calculatePurchase.execute(
+      masterCustody,
+      basket,
+      referenceDate,
+    );
 
     await this.orderApi.registerOrder({
       brokerageAccountId: masterCustody.graphicalAccountId,
-      items: orders,
+      items: result.orders,
     });
 
     await this.custodyApi.updateAccountCustody({
       graphicalAccountId: masterCustody.graphicalAccountId,
-      changes: orders.map((order) => ({
+      changes: result.orders.map((order) => ({
         ticker: order.ticker,
         quantity: order.quantity,
         type: CustodyEventType.PURCHASE,
         profit: Money.zero(),
         unitaryPrice: order.unitaryPrice,
       })),
-      newBalance: leftovers,
+      newBalance: result.leftovers,
     });
 
     this.eventBus.publish(
-      new PurchaseExecutedEvent(masterCustody.graphicalAccountId, totalAmount),
+      new PurchaseExecutedEvent(
+        masterCustody.graphicalAccountId,
+        result.totalAmount,
+      ),
     );
   }
 }
