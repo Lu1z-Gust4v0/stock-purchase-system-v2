@@ -6,12 +6,8 @@ export class TaxRepository implements TaxRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(tax: Tax): Promise<void> {
-    await this.prisma.taxEvent.upsert({
-      where: { id: tax.id },
-      update: {
-        published: tax.published,
-      },
-      create: {
+    await this.prisma.taxEvent.create({
+      data: {
         id: tax.id,
         type: tax.type,
         baseAmount: tax.baseAmount.amount,
