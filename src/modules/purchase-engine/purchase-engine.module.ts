@@ -17,6 +17,7 @@ import { type CustodyApiInterface } from '@/modules/custody/api/custody-api.inte
 import { type QuotesApiInterface } from '@/modules/quote/api/quotes-api.interface';
 import { type OrderApiInterface } from '@/modules/order/api/order-api.interface';
 import { type EventBusPort } from '@/shared/events/event-bus.interface';
+import { CalculatePurchaseUseCase } from './application/use-cases/calculate-purchase.use-case';
 import { ExecutePurchaseUseCase } from './application/use-cases/execute-purchase.use-case';
 import { PurchaseEngineController } from './infrastructure/web/purchase-engine.controller';
 
@@ -32,31 +33,31 @@ import { PurchaseEngineController } from './infrastructure/web/purchase-engine.c
   controllers: [PurchaseEngineController],
   providers: [
     {
-      provide: ExecutePurchaseUseCase,
+      provide: CalculatePurchaseUseCase,
       useFactory: (
-        basketApi: BasketApiInterface,
         customerApi: CustomerApiInterface,
         custodyApi: CustodyApiInterface,
         quotesApi: QuotesApiInterface,
+      ) => new CalculatePurchaseUseCase(customerApi, custodyApi, quotesApi),
+      inject: [CUSTOMER_API, CUSTODY_API, QUOTES_API],
+    },
+    {
+      provide: ExecutePurchaseUseCase,
+      useFactory: (
+        basketApi: BasketApiInterface,
+        custodyApi: CustodyApiInterface,
         orderApi: OrderApiInterface,
         eventBus: EventBusPort,
+        calculatePurchase: CalculatePurchaseUseCase,
       ) =>
         new ExecutePurchaseUseCase(
           basketApi,
-          customerApi,
           custodyApi,
-          quotesApi,
           orderApi,
           eventBus,
+          calculatePurchase,
         ),
-      inject: [
-        BASKET_API,
-        CUSTOMER_API,
-        CUSTODY_API,
-        QUOTES_API,
-        ORDER_API,
-        EVENT_BUS_PORT,
-      ],
+      inject: [BASKET_API, CUSTODY_API, ORDER_API, EVENT_BUS_PORT, CalculatePurchaseUseCase],
     },
   ],
 })
