@@ -8,6 +8,7 @@ import { OrderRepository } from '@/modules/order/infrastructure/persistence/orde
 import { RegisterOrderUseCase } from '@/modules/order/application/use-cases/register-order.usecase';
 import { ORDER_API } from '@/modules/order/api/order-api.interface';
 import { OrderApi } from '@/modules/order/api/order.api';
+import { SplitIntoLotOrdersService } from './domain/services/split-into-lot-orders.service';
 
 @Module({
   imports: [PrismaModule],
@@ -21,10 +22,14 @@ import { OrderApi } from '@/modules/order/api/order.api';
       useFactory: (repo: OrderRepositoryPort) => new RegisterOrderUseCase(repo),
       inject: [ORDER_REPOSITORY_PORT],
     },
+    SplitIntoLotOrdersService,
     {
       provide: ORDER_API,
-      useFactory: (useCase: RegisterOrderUseCase) => new OrderApi(useCase),
-      inject: [RegisterOrderUseCase],
+      useFactory: (
+        useCase: RegisterOrderUseCase,
+        splitIntoLotOrders: SplitIntoLotOrdersService,
+      ) => new OrderApi(useCase, splitIntoLotOrders),
+      inject: [RegisterOrderUseCase, SplitIntoLotOrdersService],
     },
   ],
   exports: [ORDER_API],
