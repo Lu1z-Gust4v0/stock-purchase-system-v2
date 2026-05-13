@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.interface';
 import type { QuotesApiInterface } from '@/modules/quote/api/quotes-api.interface';
+import type { OrderApiInterface } from '@/modules/order/api/order-api.interface';
 import { Money } from '@/shared/domain/money.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
 import { BasketResponseDto } from '@/modules/basket/application/dtos/basket-response.dto';
-import { MarketType } from '@/modules/order/domain/order.entity';
 import {
   CalculatePurchaseResponse,
   PurchaseOrderItem,
@@ -13,13 +13,13 @@ import {
 
 @Injectable()
 export class CalculatePurchaseUseCase {
-  private readonly PURCHASE_DATES_PER_MONTH = 3;
-  private readonly FRACTIONAL_TICKER_SUFFIX = 'F';
-  private readonly STANDARD_LOT_SIZE = 100;
+  private static readonly PURCHASE_DATES_PER_MONTH = 3;
+  private static readonly FRACTIONAL_TICKER_SUFFIX = 'F';
 
   constructor(
     private readonly customerApi: CustomerApiInterface,
     private readonly quotesApi: QuotesApiInterface,
+    private readonly orderApi: OrderApiInterface,
   ) {}
 
   async execute(
@@ -30,57 +30,36 @@ export class CalculatePurchaseUseCase {
     const totalAmount = await this.calculatePurchaseAmount(masterCustody);
     const prices = await this.getPricesMap(basket, referenceDate);
 
-    const orders: PurchaseOrderItem[] = [];
+    const purchaseOrders: PurchaseOrderItem[] = [];
     let purchaseAmount = Money.zero();
 
-    basket.items.forEach((item) => {
-      const price = this.getPriceOrThrow(item.ticker, prices);
+    for (const item of basket.items) {
+      const spotPrice = this.getPriceOrThrow(item.ticker, prices);
+      const fractionalPrice = this.getPriceOrThrow(
+        this.toFractionalTicker(item.ticker),
+        prices,
+      );
 
       const allocation = totalAmount.multiply(item.allocationPercentage / 100);
-      const initialQuantity = Math.floor(allocation.amount / price.amount);
+      const initialQuantity = Math.floor(allocation.amount / spotPrice.amount);
       const quantityInCustody =
         masterCustody.positions[item.ticker]?.quantity ?? 0;
+      const signedQuantity = initialQuantity - quantityInCustody;
 
-      const totalQuantity = initialQuantity - quantityInCustody;
+      const { orders, orderAmount } = this.orderApi.splitIntoLotOrders({
+        ticker: item.ticker,
+        signedQuantity,
+        spotPrice,
+        fractionalPrice,
+      });
 
-      const fractionalQuantity = totalQuantity % this.STANDARD_LOT_SIZE;
-      const standardLotQuantity = totalQuantity - fractionalQuantity;
-
-      if (fractionalQuantity > 0) {
-        const fractionalPrice = this.getPriceOrThrow(
-          this.toFractionalTicker(item.ticker),
-          prices,
-        );
-
-        orders.push({
-          marketType: MarketType.FRACTIONAL,
-          quantity: fractionalQuantity,
-          ticker: item.ticker,
-          unitaryPrice: fractionalPrice,
-        });
-
-        purchaseAmount = purchaseAmount.add(
-          fractionalPrice.multiply(fractionalQuantity),
-        );
-      }
-
-      if (standardLotQuantity >= this.STANDARD_LOT_SIZE) {
-        orders.push({
-          marketType: MarketType.SPOT,
-          quantity: standardLotQuantity,
-          ticker: item.ticker,
-          unitaryPrice: price,
-        });
-
-        purchaseAmount = purchaseAmount.add(
-          price.multiply(standardLotQuantity),
-        );
-      }
-    });
+      purchaseOrders.push(...orders);
+      purchaseAmount = purchaseAmount.add(orderAmount);
+    }
 
     return {
       totalAmount,
-      orders,
+      orders: purchaseOrders,
       leftovers: totalAmount.subtract(purchaseAmount),
     };
   }
@@ -92,7 +71,7 @@ export class CalculatePurchaseUseCase {
       await this.customerApi.getMonthlyTotalClientDeposit();
 
     const perDayAmount = totalMonthlyDeposit.divide(
-      this.PURCHASE_DATES_PER_MONTH,
+      CalculatePurchaseUseCase.PURCHASE_DATES_PER_MONTH,
     );
     return perDayAmount.add(masterCustody.currency.amount);
   }
@@ -120,6 +99,6 @@ export class CalculatePurchaseUseCase {
   }
 
   private toFractionalTicker(ticker: string): string {
-    return `${ticker}${this.FRACTIONAL_TICKER_SUFFIX}`;
+    return `${ticker}${CalculatePurchaseUseCase.FRACTIONAL_TICKER_SUFFIX}`;
   }
 }

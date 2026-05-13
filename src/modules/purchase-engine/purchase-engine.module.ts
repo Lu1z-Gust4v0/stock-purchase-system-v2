@@ -36,10 +36,10 @@ import { PurchaseEngineController } from './infrastructure/web/purchase-engine.c
       provide: CalculatePurchaseUseCase,
       useFactory: (
         customerApi: CustomerApiInterface,
-        custodyApi: CustodyApiInterface,
         quotesApi: QuotesApiInterface,
-      ) => new CalculatePurchaseUseCase(customerApi, custodyApi, quotesApi),
-      inject: [CUSTOMER_API, CUSTODY_API, QUOTES_API],
+        orderApi: OrderApiInterface,
+      ) => new CalculatePurchaseUseCase(customerApi, quotesApi, orderApi),
+      inject: [CUSTOMER_API, QUOTES_API, ORDER_API],
     },
     {
       provide: ExecutePurchaseUseCase,
