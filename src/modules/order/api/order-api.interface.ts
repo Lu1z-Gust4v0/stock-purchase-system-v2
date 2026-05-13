@@ -6,5 +6,7 @@ export const ORDER_API = Symbol('ORDER_API');
 
 export interface OrderApiInterface {
   registerOrder(dto: RegisterOrderRequestDto): Promise<void>;
-  splitIntoLotOrders(dto: SplitIntoLotOrdersRequestDto): SplitIntoLotOrdersResponseDto;
+  splitIntoLotOrders(
+    dto: SplitIntoLotOrdersRequestDto,
+  ): SplitIntoLotOrdersResponseDto;
 }

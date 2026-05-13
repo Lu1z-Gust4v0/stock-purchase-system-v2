@@ -17,7 +17,9 @@ export class OrderApi implements OrderApiInterface {
     return this.registerOrderUseCase.execute(dto);
   }
 
-  splitIntoLotOrders(dto: SplitIntoLotOrdersRequestDto): SplitIntoLotOrdersResponseDto {
+  splitIntoLotOrders(
+    dto: SplitIntoLotOrdersRequestDto,
+  ): SplitIntoLotOrdersResponseDto {
     return this.splitIntoLotOrdersService.execute(dto);
   }
 }

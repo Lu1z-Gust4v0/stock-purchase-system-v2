@@ -37,7 +37,9 @@ export class CustodyApi implements CustodyApiInterface {
     return this.updateAccountCustodyUseCase.execute(dto);
   }
 
-  async getAccountCustody(accountId: string): Promise<AccountCustodyResponseDto> {
+  async getAccountCustody(
+    accountId: string,
+  ): Promise<AccountCustodyResponseDto> {
     const custody = await this.getAccountCustodyUseCase.execute(accountId);
     return AccountCustodyResponseMapper.toDto(custody);
   }
