@@ -29,7 +29,7 @@ import { DistributeSharesUseCase } from './application/use-cases/distribute-shar
 import { DistributionRepository } from './infrastructure/persistence/prisma/distribution.repository';
 import { PurchaseEngineController } from './infrastructure/web/purchase-engine.controller';
 import { PurchaseExecutedConsumer } from './infrastructure/messaging/purchase-executed.consumer';
-import { DistributionStartedConsumer } from './infrastructure/messaging/distribution-started.consumer';
+import { ExecutePurchaseJob } from './infrastructure/jobs/execute-purchase.job';
 
 @Module({
   imports: [
@@ -45,7 +45,7 @@ import { DistributionStartedConsumer } from './infrastructure/messaging/distribu
   controllers: [
     PurchaseEngineController,
     PurchaseExecutedConsumer,
-    DistributionStartedConsumer,
+    ExecutePurchaseJob,
   ],
   providers: [
     {
