@@ -13,21 +13,27 @@ export class RebalanceByDeviationUseCase {
   ) {}
 
   async execute(dto: RebalanceByDeviationRequestDto): Promise<void> {
-    const { accountCustody } = dto;
+    const { customerAccountId, basket } = dto;
+
+    const accountCustody =
+      await this.custodyApi.getAccountCustody(customerAccountId);
 
     const { orders, changes, leftovers } =
-      await this.byDeviationCalculator.calculate(dto);
+      await this.byDeviationCalculator.calculate({
+        accountCustody: accountCustody,
+        basket: basket,
+      });
 
     // No rebalance needed for client, all stocks within threshold
     if (!orders.length) return;
 
     await this.orderApi.registerOrder({
-      brokerageAccountId: accountCustody.graphicalAccountId,
+      brokerageAccountId: customerAccountId,
       items: orders,
     });
 
     await this.custodyApi.updateAccountCustody({
-      graphicalAccountId: accountCustody.graphicalAccountId,
+      graphicalAccountId: customerAccountId,
       changes: changes,
       newBalance: leftovers,
     });

@@ -13,18 +13,29 @@ export class RebalanceByBasketChangeUseCase {
   ) {}
 
   async execute(dto: RebalanceByBasketChangeRequestDto): Promise<void> {
-    const { accountCustody } = dto;
+    const { customerAccountId, newBasket } = dto;
+
+    const accountCustody =
+      await this.custodyApi.getAccountCustody(customerAccountId);
+
+    // No shares, skip it
+    if (Object.keys(accountCustody.positions).length === 0) {
+      return;
+    }
 
     const { orders, changes, leftovers } =
-      await this.byBasketChangeCalculator.calculate(dto);
+      await this.byBasketChangeCalculator.calculate({
+        accountCustody: accountCustody,
+        newBasket: newBasket,
+      });
 
     await this.orderApi.registerOrder({
-      brokerageAccountId: accountCustody.graphicalAccountId,
+      brokerageAccountId: customerAccountId,
       items: orders,
     });
 
     await this.custodyApi.updateAccountCustody({
-      graphicalAccountId: accountCustody.graphicalAccountId,
+      graphicalAccountId: customerAccountId,
       changes: changes,
       newBalance: leftovers,
     });

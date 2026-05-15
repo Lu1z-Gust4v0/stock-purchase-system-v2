@@ -4,12 +4,16 @@ import { Injectable } from '@nestjs/common';
 import { Money } from '@/shared/domain/money.vo';
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
 import { BasketResponseDto } from '@/modules/basket/application/dtos/basket-response.dto';
-import { RebalanceByBasketChangeRequestDto } from '../../application/dtos/rebalance-by-basket-change-request.dto';
 import {
   RebalanceCalculator,
   RebalanceCalculatorResponse,
   RebalanceQuantities,
 } from './rebalance-calculator.base';
+
+interface ByBasketChangeCalculatorInput {
+  accountCustody: AccountCustodyResponseDto;
+  newBasket: BasketResponseDto;
+}
 
 @Injectable()
 export class ByBasketChangeCalculator extends RebalanceCalculator {
@@ -18,9 +22,9 @@ export class ByBasketChangeCalculator extends RebalanceCalculator {
   }
 
   async calculate(
-    dto: RebalanceByBasketChangeRequestDto,
+    input: ByBasketChangeCalculatorInput,
   ): Promise<RebalanceCalculatorResponse> {
-    const { accountCustody, newBasket } = dto;
+    const { accountCustody, newBasket } = input;
 
     const prices = await this.fetchPrices(newBasket, accountCustody);
 
