@@ -7,7 +7,6 @@ import { CustodyEventType } from '@/modules/custody/domain/custody-event.entity'
 import type { TaxApiInterface } from '@/modules/tax/api/tax-api.interface';
 import { TaxType } from '@/modules/tax/domain/tax.entity';
 import { CustomerResponseDto } from '@/modules/customer/application/dtos/customer-response.dto';
-import type { DistributionRepositoryPort } from '../ports/distribution-repository.port';
 import { Distribution } from '../../domain/distribution.entity';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class DistributeSharesUseCase {
   constructor(
     private readonly custodyApi: CustodyApiInterface,
     private readonly taxApi: TaxApiInterface,
-    private readonly distributionRepo: DistributionRepositoryPort,
   ) {}
 
   async execute(dto: DistributeSharesRequestDto): Promise<void> {
@@ -27,7 +25,12 @@ export class DistributeSharesUseCase {
 
     await this.calculateAndPublishTaxes(distribution, customer);
 
-    await this.distributionRepo.save(distribution);
+    await this.custodyApi.saveDistribution({
+      id: distribution.id,
+      amount: distribution.amount,
+      graphicalAccountId: distribution.destination,
+      createdAt: distribution.createdAt,
+    });
   }
 
   private async updateAccountsCustody(

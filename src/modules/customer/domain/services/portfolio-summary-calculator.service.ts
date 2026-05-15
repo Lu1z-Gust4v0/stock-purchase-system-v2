@@ -1,5 +1,5 @@
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
-import type { PurchaseEngineApiInterface } from '@/modules/purchase-engine/api/purchase-engine-api.interface';
+import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.interface';
 import type { QuotesApiInterface } from '@/modules/quote/api/quotes-api.interface';
 import { Money } from '@/shared/domain/money.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
@@ -33,7 +33,7 @@ export interface PortfolioSummaryCalculatorInput {
 export class PortfolioSummaryCalculator {
   constructor(
     private readonly quotesApi: QuotesApiInterface,
-    private readonly purchaseEngineApi: PurchaseEngineApiInterface,
+    private readonly custodyApi: CustodyApiInterface,
   ) {}
 
   async calculate(
@@ -44,7 +44,7 @@ export class PortfolioSummaryCalculator {
     const prices = await this.fetchPrices(accountCustody);
 
     const distributionVolume =
-      await this.purchaseEngineApi.getTotalDistributionVolumeByAccountId(
+      await this.custodyApi.getTotalDistributionVolumeByAccountId(
         accountCustody.graphicalAccountId,
       );
 

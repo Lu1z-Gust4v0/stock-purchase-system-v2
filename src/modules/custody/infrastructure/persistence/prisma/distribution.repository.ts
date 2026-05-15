@@ -1,5 +1,7 @@
-import { DistributionRepositoryPort } from '@/modules/purchase-engine/application/ports/distribution-repository.port';
-import { Distribution } from '@/modules/purchase-engine/domain/distribution.entity';
+import {
+  DistributionRepositoryPort,
+  SaveDistributionDto,
+} from '@/modules/custody/application/ports/distribution-repository.port';
 import { Money } from '@/shared/domain/money.vo';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -8,14 +10,14 @@ import { Injectable } from '@nestjs/common';
 export class DistributionRepository implements DistributionRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(distribution: Distribution): Promise<void> {
+  async save(dto: SaveDistributionDto): Promise<void> {
     await this.prisma.distribution.create({
       data: {
-        id: distribution.id,
-        amount: distribution.amount.amount,
-        code: distribution.amount.currency,
-        graphicalAccountId: distribution.destination,
-        createdAt: distribution.createdAt.toISOString(),
+        id: dto.id,
+        amount: dto.amount.amount,
+        code: dto.amount.currency,
+        graphicalAccountId: dto.graphicalAccountId,
+        createdAt: dto.createdAt.toISOString(),
       },
     });
   }

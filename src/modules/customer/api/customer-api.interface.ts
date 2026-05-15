@@ -1,6 +1,7 @@
 import { Money } from '@/shared/domain/money.vo';
 import { CreateCustomerRequestDto } from '../application/dtos/create-customer-request.dto';
 import { CustomerResponseDto } from '../application/dtos/customer-response.dto';
+import type { GetCustomerPortfolioResponseDto } from '../application/dtos/get-customer-portfolio-response.dto';
 
 export const CUSTOMER_API = Symbol('CUSTOMER_API');
 
@@ -14,4 +15,7 @@ export interface CustomerApiInterface {
   getActiveClients(): Promise<CustomerResponseDto[]>;
   countActiveClients(): Promise<number>;
   getMonthlyTotalClientDeposit(): Promise<Money>;
+  getCustomerPortfolio(
+    customerId: string,
+  ): Promise<GetCustomerPortfolioResponseDto>;
 }

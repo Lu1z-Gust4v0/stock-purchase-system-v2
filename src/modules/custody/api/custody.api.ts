@@ -11,6 +11,11 @@ import {
 import { GraphicalAccount } from '../domain/graphical-account.entity';
 import { UpdateAccountCustodyRequestDto } from '../application/ports/update-account-custody-request.dto';
 import { type CustodyRepositoryPort } from '../application/ports/custody-repository.port';
+import type {
+  DistributionRepositoryPort,
+  SaveDistributionDto,
+} from '../application/ports/distribution-repository.port';
+import { Money } from '@/shared/domain/money.vo';
 
 @Injectable()
 export class CustodyApi implements CustodyApiInterface {
@@ -20,6 +25,7 @@ export class CustodyApi implements CustodyApiInterface {
     private readonly updateAccountCustodyUseCase: UpdateAccountCustodyUseCase,
     private readonly getAccountCustodyUseCase: GetAccountCustodyUseCase,
     private readonly custodyRepo: CustodyRepositoryPort,
+    private readonly distributionRepo: DistributionRepositoryPort,
   ) {}
 
   async createGraphicalAccount(clientId: string): Promise<GraphicalAccount> {
@@ -56,5 +62,17 @@ export class CustodyApi implements CustodyApiInterface {
     referenceDate: Date,
   ): Promise<number> {
     return this.custodyRepo.getMonthlyProfitVolume(accountId, referenceDate);
+  }
+
+  async saveDistribution(dto: SaveDistributionDto): Promise<void> {
+    return this.distributionRepo.save(dto);
+  }
+
+  async getTotalDistributionVolumeByAccountId(
+    accountId: string,
+  ): Promise<Money> {
+    return this.distributionRepo.getTotalDistributionVolumeByAccountId(
+      accountId,
+    );
   }
 }

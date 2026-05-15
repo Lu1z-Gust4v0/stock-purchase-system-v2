@@ -8,8 +8,13 @@ import {
   GRAPHICAL_ACCOUNT_REPOSITORY,
   GraphicalAccountRepositoryPort,
 } from './application/ports/graphical-account-repository.port';
+import {
+  DISTRIBUTION_REPOSITORY_PORT,
+  DistributionRepositoryPort,
+} from './application/ports/distribution-repository.port';
 import { CustodyRepository } from './infrastructure/persistence/prisma/custody.repository';
 import { GraphicalAccountRepository } from './infrastructure/persistence/prisma/graphical-account.repository';
+import { DistributionRepository } from './infrastructure/persistence/prisma/distribution.repository';
 import { GetMasterAccountCustodyUseCase } from './application/use-cases/get-master-account-custody.usecase';
 import { UpdateAccountCustodyUseCase } from './application/use-cases/update-account-custody.usecase';
 import { GetAccountCustodyUseCase } from './application/use-cases/get-account-custody.usecase';
@@ -29,6 +34,10 @@ import { CustodyController } from './infrastructure/web/custody.controller';
     {
       provide: GRAPHICAL_ACCOUNT_REPOSITORY,
       useClass: GraphicalAccountRepository,
+    },
+    {
+      provide: DISTRIBUTION_REPOSITORY_PORT,
+      useClass: DistributionRepository,
     },
     {
       provide: CreateGraphicalAccountUseCase,
@@ -65,6 +74,7 @@ import { CustodyController } from './infrastructure/web/custody.controller';
         updateCustody: UpdateAccountCustodyUseCase,
         getAccountCustody: GetAccountCustodyUseCase,
         custodyRepo: CustodyRepositoryPort,
+        distributionRepo: DistributionRepositoryPort,
       ) =>
         new CustodyApi(
           createGraphicalAccount,
@@ -72,6 +82,7 @@ import { CustodyController } from './infrastructure/web/custody.controller';
           updateCustody,
           getAccountCustody,
           custodyRepo,
+          distributionRepo,
         ),
       inject: [
         CreateGraphicalAccountUseCase,
@@ -79,6 +90,7 @@ import { CustodyController } from './infrastructure/web/custody.controller';
         UpdateAccountCustodyUseCase,
         GetAccountCustodyUseCase,
         CUSTODY_REPOSITORY,
+        DISTRIBUTION_REPOSITORY_PORT,
       ],
     },
   ],

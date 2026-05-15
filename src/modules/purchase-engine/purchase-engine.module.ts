@@ -21,14 +21,9 @@ import type { OrderApiInterface } from '@/modules/order/api/order-api.interface'
 import type { TaxApiInterface } from '@/modules/tax/api/tax-api.interface';
 import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.interface';
 import type { EventBusPort } from '@/shared/events/event-bus.interface';
-import type { DistributionRepositoryPort } from './application/ports/distribution-repository.port';
-import { DISTRIBUTION_REPOSITORY_PORT } from './application/ports/distribution-repository.port';
-import { PURCHASE_ENGINE_API } from './api/purchase-engine-api.interface';
-import { PurchaseEngineApi } from './api/purchase-engine.api';
 import { CalculatePurchaseUseCase } from './application/use-cases/calculate-purchase.use-case';
 import { ExecutePurchaseUseCase } from './application/use-cases/execute-purchase.use-case';
 import { DistributeSharesUseCase } from './application/use-cases/distribute-shares.use-case';
-import { DistributionRepository } from './infrastructure/persistence/prisma/distribution.repository';
 import { PurchaseEngineController } from './infrastructure/web/purchase-engine.controller';
 import { PurchaseExecutedConsumer } from './infrastructure/messaging/purchase-executed.consumer';
 import { ExecutePurchaseJob } from './infrastructure/jobs/execute-purchase.job';
@@ -50,10 +45,6 @@ import { ExecutePurchaseJob } from './infrastructure/jobs/execute-purchase.job';
     ExecutePurchaseJob,
   ],
   providers: [
-    {
-      provide: DISTRIBUTION_REPOSITORY_PORT,
-      useClass: DistributionRepository,
-    },
     {
       provide: CalculatePurchaseUseCase,
       useFactory: (
@@ -89,20 +80,10 @@ import { ExecutePurchaseJob } from './infrastructure/jobs/execute-purchase.job';
     },
     {
       provide: DistributeSharesUseCase,
-      useFactory: (
-        custodyApi: CustodyApiInterface,
-        taxApi: TaxApiInterface,
-        distributionRepo: DistributionRepositoryPort,
-      ) => new DistributeSharesUseCase(custodyApi, taxApi, distributionRepo),
-      inject: [CUSTODY_API, TAX_API, DISTRIBUTION_REPOSITORY_PORT],
-    },
-    {
-      provide: PURCHASE_ENGINE_API,
-      useFactory: (distributionRepo: DistributionRepositoryPort) =>
-        new PurchaseEngineApi(distributionRepo),
-      inject: [DISTRIBUTION_REPOSITORY_PORT],
+      useFactory: (custodyApi: CustodyApiInterface, taxApi: TaxApiInterface) =>
+        new DistributeSharesUseCase(custodyApi, taxApi),
+      inject: [CUSTODY_API, TAX_API],
     },
   ],
-  exports: [PURCHASE_ENGINE_API],
 })
 export class PurchaseEngineModule {}
