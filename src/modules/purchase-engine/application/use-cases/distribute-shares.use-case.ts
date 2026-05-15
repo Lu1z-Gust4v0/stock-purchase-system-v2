@@ -7,7 +7,7 @@ import { CustodyEventType } from '@/modules/custody/domain/custody-event.entity'
 import type { TaxApiInterface } from '@/modules/tax/api/tax-api.interface';
 import { TaxType } from '@/modules/tax/domain/tax.entity';
 import { CustomerResponseDto } from '@/modules/customer/application/dtos/customer-response.dto';
-import { Distribution } from '../../domain/distribution.entity';
+import { DistributionDto } from '../dtos/distribution.dto';
 
 @Injectable()
 export class DistributeSharesUseCase {
@@ -34,7 +34,7 @@ export class DistributeSharesUseCase {
   }
 
   private async updateAccountsCustody(
-    distribution: Distribution,
+    distribution: DistributionDto,
   ): Promise<void> {
     const changes = distribution.items.map((item) => ({
       quantity: item.quantity,
@@ -61,7 +61,7 @@ export class DistributeSharesUseCase {
   }
 
   private async calculateAndPublishTaxes(
-    distribution: Distribution,
+    distribution: DistributionDto,
     customer: CustomerResponseDto,
   ): Promise<void> {
     for (const item of distribution.items) {

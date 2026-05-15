@@ -1,7 +1,8 @@
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
 import { CustomerResponseDto } from '@/modules/customer/application/dtos/customer-response.dto';
 import { Money } from '@/shared/domain/money.vo';
-import { Distribution } from '../distribution.entity';
+import { randomUUID } from 'node:crypto';
+import { DistributionDto } from '../../application/dtos/distribution.dto';
 
 export interface DistributionCalculationInput {
   customer: CustomerResponseDto;
@@ -12,7 +13,7 @@ export interface DistributionCalculationInput {
 export class DistributionCalculatorService {
   private static readonly PURCHASE_DATES_PER_MONTH = 3;
 
-  static calculate(input: DistributionCalculationInput): Distribution {
+  static calculate(input: DistributionCalculationInput): DistributionDto {
     const { customer, masterAccount, purchaseTotalAmount } = input;
 
     const customerAmount = customer.monthlyDeposit.divide(
@@ -21,19 +22,21 @@ export class DistributionCalculatorService {
     const distributionProportion =
       customerAmount.amount / purchaseTotalAmount.amount;
 
-    const distributionItems = Object.entries(masterAccount.positions).map(
+    const items = Object.entries(masterAccount.positions).map(
       ([ticker, position]) => ({
-        ticker: ticker,
+        ticker,
         quantity: Math.floor(distributionProportion * position.quantity),
         unitaryPrice: position.averagePrice,
       }),
     );
 
-    return Distribution.create(
-      customerAmount,
-      masterAccount.graphicalAccountId,
-      customer.graphicalAccountId,
-      distributionItems,
-    );
+    return {
+      id: randomUUID(),
+      amount: customerAmount,
+      origin: masterAccount.graphicalAccountId,
+      destination: customer.graphicalAccountId,
+      items,
+      createdAt: new Date(),
+    };
   }
 }
