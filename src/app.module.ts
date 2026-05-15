@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
 import { BasketModule } from '@/modules/basket/basket.module';
@@ -7,7 +8,13 @@ import { PurchaseEngineModule } from '@/modules/purchase-engine/purchase-engine.
 import { RebalancingModule } from '@/modules/rebalancing/rebalancing.module';
 
 @Module({
-  imports: [BasketModule, QuoteModule, PurchaseEngineModule, RebalancingModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    BasketModule,
+    QuoteModule,
+    PurchaseEngineModule,
+    RebalancingModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

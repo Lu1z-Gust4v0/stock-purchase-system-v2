@@ -15,7 +15,7 @@ import { ByDeviationCalculator } from './domain/services/by-deviation-calculator
 import { RebalanceByBasketChangeUseCase } from './application/use-cases/rebalance-by-basket-change.use-case';
 import { RebalanceByDeviationUseCase } from './application/use-cases/rebalance-by-deviation.use-case';
 import { BasketChangedConsumer } from './infrastructure/messaging/basket-changed.consumer';
-import { BasketChangedStartedConsumer } from './infrastructure/messaging/basket-changed-started.consumer';
+import { RebalanceByDeviationJob } from './infrastructure/jobs/rebalance-by-deviation.job';
 
 @Module({
   imports: [
@@ -25,18 +25,22 @@ import { BasketChangedStartedConsumer } from './infrastructure/messaging/basket-
     QuoteModule,
     OrderModule,
   ],
-  controllers: [BasketChangedConsumer, BasketChangedStartedConsumer],
+  controllers: [BasketChangedConsumer, RebalanceByDeviationJob],
   providers: [
     {
       provide: ByBasketChangeCalculator,
-      useFactory: (quotesApi: QuotesApiInterface, orderApi: OrderApiInterface) =>
-        new ByBasketChangeCalculator(quotesApi, orderApi),
+      useFactory: (
+        quotesApi: QuotesApiInterface,
+        orderApi: OrderApiInterface,
+      ) => new ByBasketChangeCalculator(quotesApi, orderApi),
       inject: [QUOTES_API, ORDER_API],
     },
     {
       provide: ByDeviationCalculator,
-      useFactory: (quotesApi: QuotesApiInterface, orderApi: OrderApiInterface) =>
-        new ByDeviationCalculator(quotesApi, orderApi),
+      useFactory: (
+        quotesApi: QuotesApiInterface,
+        orderApi: OrderApiInterface,
+      ) => new ByDeviationCalculator(quotesApi, orderApi),
       inject: [QUOTES_API, ORDER_API],
     },
     {
