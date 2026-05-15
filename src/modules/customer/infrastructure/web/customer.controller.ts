@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
@@ -15,6 +16,7 @@ import {
 } from '../../api/customer-api.interface';
 import type { CreateCustomerRequestDto } from '../../application/dtos/create-customer-request.dto';
 import type { CustomerResponseDto } from '../../application/dtos/customer-response.dto';
+import type { GetCustomerPortfolioResponseDto } from '../../application/dtos/get-customer-portfolio-response.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -44,5 +46,13 @@ export class CustomerController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deactivateCustomer(@Param('id') id: string): Promise<void> {
     return this.customerApi.disableCustomer(id);
+  }
+
+  @Get(':id/portfolio')
+  @HttpCode(HttpStatus.OK)
+  async getCustomerPortfolio(
+    @Param('id') id: string,
+  ): Promise<GetCustomerPortfolioResponseDto> {
+    return this.customerApi.getCustomerPortfolio(id);
   }
 }
