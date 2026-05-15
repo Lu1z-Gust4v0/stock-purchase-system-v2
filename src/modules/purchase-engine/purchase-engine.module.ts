@@ -23,6 +23,8 @@ import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.i
 import type { EventBusPort } from '@/shared/events/event-bus.interface';
 import type { DistributionRepositoryPort } from './application/ports/distribution-repository.port';
 import { DISTRIBUTION_REPOSITORY_PORT } from './application/ports/distribution-repository.port';
+import { PURCHASE_ENGINE_API } from './api/purchase-engine-api.interface';
+import { PurchaseEngineApi } from './api/purchase-engine.api';
 import { CalculatePurchaseUseCase } from './application/use-cases/calculate-purchase.use-case';
 import { ExecutePurchaseUseCase } from './application/use-cases/execute-purchase.use-case';
 import { DistributeSharesUseCase } from './application/use-cases/distribute-shares.use-case';
@@ -94,6 +96,13 @@ import { ExecutePurchaseJob } from './infrastructure/jobs/execute-purchase.job';
       ) => new DistributeSharesUseCase(custodyApi, taxApi, distributionRepo),
       inject: [CUSTODY_API, TAX_API, DISTRIBUTION_REPOSITORY_PORT],
     },
+    {
+      provide: PURCHASE_ENGINE_API,
+      useFactory: (distributionRepo: DistributionRepositoryPort) =>
+        new PurchaseEngineApi(distributionRepo),
+      inject: [DISTRIBUTION_REPOSITORY_PORT],
+    },
   ],
+  exports: [PURCHASE_ENGINE_API],
 })
 export class PurchaseEngineModule {}
