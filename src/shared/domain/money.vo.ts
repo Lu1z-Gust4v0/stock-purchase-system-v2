@@ -84,6 +84,13 @@ export class Money extends ValueObject<MoneyProps> {
     return this.props.amount > 0;
   }
 
+  toJSON(): { amount: number; currency: Currency } {
+    return {
+      amount: this.props.amount,
+      currency: this.props.currency,
+    };
+  }
+
   private assertSameCurrency(other: Money): void {
     if (this.props.currency !== other.props.currency) {
       throw new DomainError(
