@@ -11,6 +11,7 @@ export interface CustomerApiInterface {
     customerId: string,
     monthlyDeposit: number,
   ): Promise<void>;
+  getActiveClients(): Promise<CustomerResponseDto[]>;
   countActiveClients(): Promise<number>;
   getMonthlyTotalClientDeposit(): Promise<Money>;
 }

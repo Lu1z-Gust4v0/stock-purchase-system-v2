@@ -7,6 +7,7 @@ export interface CustomerRepositoryPort {
   save(customer: Customer): Promise<void>;
   findById(id: string): Promise<Customer | null>;
   findByMainDocumentCode(mainDocumentCode: string): Promise<Customer | null>;
+  findAllActive(): Promise<Customer[]>;
   countActiveClients(): Promise<number>;
   getMonthlyTotalClientDeposit(): Promise<Money>;
 }

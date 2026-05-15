@@ -57,6 +57,14 @@ export class CustomerRepository implements CustomerRepositoryPort {
     return Money.fromNumber(total);
   }
 
+  async findAllActive(): Promise<Customer[]> {
+    const records = await this.prisma.client.findMany({
+      where: { active: true },
+      include: { graphicalAccount: { select: { id: true } } },
+    });
+    return records.map(CustomerMapper.toDomain);
+  }
+
   async countActiveClients(): Promise<number> {
     return await this.prisma.client.count({
       where: { active: true },

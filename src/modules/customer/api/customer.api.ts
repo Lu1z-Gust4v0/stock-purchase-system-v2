@@ -4,7 +4,10 @@ import { CreateCustomerUseCase } from '../application/use-cases/create-customer.
 import { DisableCustomerUseCase } from '../application/use-cases/disable-customer.usecase';
 import { UpdateCustomerDepositUseCase } from '../application/use-cases/update-customer-deposit.usecase';
 import { CreateCustomerRequestDto } from '../application/dtos/create-customer-request.dto';
-import { CustomerResponseDto } from '../application/dtos/customer-response.dto';
+import {
+  CustomerResponseDto,
+  CustomerResponseMapper,
+} from '../application/dtos/customer-response.dto';
 import type { CustomerRepositoryPort } from '../application/ports/customer-repository.port';
 import { Money } from '@/shared/domain/money.vo';
 
@@ -35,6 +38,11 @@ export class CustomerApi implements CustomerApiInterface {
       customerId,
       monthlyDeposit,
     );
+  }
+
+  async getActiveClients(): Promise<CustomerResponseDto[]> {
+    const customers = await this.customerRepo.findAllActive();
+    return customers.map(CustomerResponseMapper.toResponse);
   }
 
   async countActiveClients(): Promise<number> {
