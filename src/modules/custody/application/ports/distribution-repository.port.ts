@@ -5,7 +5,6 @@ export const DISTRIBUTION_REPOSITORY_PORT = Symbol(
 );
 
 export interface SaveDistributionDto {
-  id: string;
   amount: Money;
   graphicalAccountId: string;
   createdAt: Date;

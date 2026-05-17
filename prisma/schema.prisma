@@ -15,7 +15,7 @@ datasource db {
 }
 
 model Basket {
-  id         String       @id @default(uuid())
+  id         String       @id @default(uuid(7))
   name       String
   active     Boolean      @default(true)
   items      BasketItem[]
@@ -26,7 +26,7 @@ model Basket {
 }
 
 model BasketItem {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid(7))
   code       String   @db.VarChar(10)
   percentage Decimal  @db.Decimal(5, 2)
   basket     Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
@@ -36,7 +36,7 @@ model BasketItem {
 }
 
 model Quote {
-  id           String   @id @default(uuid())
+  id           String   @id @default(uuid(7))
   code         String   @db.VarChar(10)
   openingPrice Decimal  @db.Decimal(10, 2) @map("opening_price")
   closingPrice Decimal  @db.Decimal(10, 2) @map("closing_price")
@@ -49,7 +49,7 @@ model Quote {
 }
 
 model Client {
-  id                String            @id @default(uuid())
+  id                String            @id @default(uuid(7))
   name              String            @db.VarChar(255)
   email             String            @unique @db.VarChar(255)
   mainDocumentCode  String            @unique @map("main_document_code") @db.VarChar(50)
@@ -62,7 +62,7 @@ model Client {
 }
 
 model GraphicalAccount {
-  id             String         @id @default(uuid())
+  id             String         @id @default(uuid(7))
   account        String         @db.VarChar(255)
   type           AccountType
   client         Client         @relation(fields: [clientId], references: [id])
@@ -84,7 +84,7 @@ enum AccountType {
 }
 
 model Order {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   code               String           @db.VarChar(10)
   quantity           Int
   unitaryPrice       Decimal          @db.Decimal(10, 2) @map("unitary_price")
@@ -102,7 +102,7 @@ enum MarketType {
 }
 
 model Custody {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   code               String           @db.VarChar(10)
   averagePrice       Decimal          @db.Decimal(10, 2) @map("average_price")
   quantity           Int
@@ -116,7 +116,7 @@ model Custody {
 }
 
 model CustodyEvent {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   code               String           @db.VarChar(10)
   unitaryPrice       Decimal          @db.Decimal(10, 2) @map("unitary_price")
   quantity           Int
@@ -136,7 +136,7 @@ enum CustodyEventType {
 }
 
 model Currency {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   amount             Decimal          @db.Decimal(18, 2)
   code               CurrencyCode
   graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
@@ -152,7 +152,7 @@ enum CurrencyCode {
 }
 
 model Distribution {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   amount             Decimal          @db.Decimal(18, 2)
   code               CurrencyCode
   graphicalAccount   GraphicalAccount @relation(fields: [graphicalAccountId], references: [id])
@@ -163,7 +163,7 @@ model Distribution {
 }
 
 model TaxEvent {
-  id                 String           @id @default(uuid())
+  id                 String           @id @default(uuid(7))
   type               TaxEventType
   baseAmount         Decimal          @db.Decimal(18, 2) @map("base_amount")
   taxAmount          Decimal          @db.Decimal(18, 2) @map("tax_amount")

@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { Entity } from '@/shared/kernel/entity';
 import { Money } from '@/shared/domain/money.vo';
 
@@ -61,7 +61,7 @@ export class CustodyEvent extends Entity<string> {
   }
 
   static create(props: Omit<CustodyEventProps, 'createdAt'>): CustodyEvent {
-    return new CustodyEvent(randomUUID(), { ...props, createdAt: new Date() });
+    return new CustodyEvent(uuidv7(), { ...props, createdAt: new Date() });
   }
 
   static reconstitute(id: string, props: CustodyEventProps): CustodyEvent {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
 import { BasketRepositoryPort } from '@/modules/basket/application/ports/basket-repository.port';
 import { RecommendationBasket } from '@/modules/basket/domain/recommendation-basket.entity';
@@ -30,7 +30,7 @@ export class BasketRepository implements BasketRepositoryPort {
         createdAt: basket.createdAt,
         items: {
           create: basket.items.map((item) => ({
-            id: randomUUID(),
+            id: uuidv7(),
             code: item.ticker,
             percentage: item.allocationPercentage,
           })),

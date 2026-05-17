@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { Money } from '@/shared/domain/money.vo';
 import { Entity } from '@/shared/kernel/entity';
 
@@ -44,7 +44,7 @@ export class Order extends Entity<string> {
   }
 
   static create(brokerageAccountId: string, items: OrderItem[]): Order {
-    return new Order(randomUUID(), brokerageAccountId, items, new Date());
+    return new Order(uuidv7(), brokerageAccountId, items, new Date());
   }
 
   static reconstitute(

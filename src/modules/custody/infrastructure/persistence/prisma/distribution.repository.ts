@@ -13,7 +13,6 @@ export class DistributionRepository implements DistributionRepositoryPort {
   async save(dto: SaveDistributionDto): Promise<void> {
     await this.prisma.distribution.create({
       data: {
-        id: dto.id,
         amount: dto.amount.amount,
         code: dto.amount.currency,
         graphicalAccountId: dto.graphicalAccountId,

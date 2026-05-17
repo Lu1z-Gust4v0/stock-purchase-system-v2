@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { Entity } from '@/shared/kernel/entity';
 
 export enum AccountType {
@@ -45,7 +45,7 @@ export class GraphicalAccount extends Entity<string> {
     type: AccountType,
   ): GraphicalAccount {
     return new GraphicalAccount(
-      randomUUID(),
+      uuidv7(),
       clientId,
       account,
       type,

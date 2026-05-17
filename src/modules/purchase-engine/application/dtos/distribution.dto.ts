@@ -7,7 +7,6 @@ export interface DistributionItemDto {
 }
 
 export interface DistributionDto {
-  id: string;
   amount: Money;
   origin: string;
   destination: string;

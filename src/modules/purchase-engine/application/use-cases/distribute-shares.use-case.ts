@@ -26,7 +26,6 @@ export class DistributeSharesUseCase {
     await this.calculateAndPublishTaxes(distribution, customer);
 
     await this.custodyApi.saveDistribution({
-      id: distribution.id,
       amount: distribution.amount,
       graphicalAccountId: distribution.destination,
       createdAt: distribution.createdAt,

@@ -1,7 +1,6 @@
 import { AccountCustodyResponseDto } from '@/modules/custody/api/account-custody-response.dto';
 import { CustomerResponseDto } from '@/modules/customer/application/dtos/customer-response.dto';
 import { Money } from '@/shared/domain/money.vo';
-import { randomUUID } from 'node:crypto';
 import { DistributionDto } from '../../application/dtos/distribution.dto';
 
 export interface DistributionCalculationInput {
@@ -31,7 +30,6 @@ export class DistributionCalculatorService {
     );
 
     return {
-      id: randomUUID(),
       amount: customerAmount,
       origin: masterAccount.graphicalAccountId,
       destination: customer.graphicalAccountId,

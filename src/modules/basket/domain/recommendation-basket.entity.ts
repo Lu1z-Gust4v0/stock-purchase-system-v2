@@ -2,7 +2,7 @@ import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { BasketItem } from '@/modules/basket/domain/basket-item.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { BasketChangedEvent } from '@/shared/events/domain-events/basket-changed.event';
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 
 export class RecommendationBasket extends AggregateRoot<string> {
   static readonly BASKET_SIZE = 5;
@@ -57,7 +57,7 @@ export class RecommendationBasket extends AggregateRoot<string> {
         422,
       );
     }
-    const basketId = randomUUID();
+    const basketId = uuidv7();
     const basket = new RecommendationBasket(
       basketId,
       name,

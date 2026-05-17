@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { Money } from '@/shared/domain/money.vo';
 import { Entity } from '@/shared/kernel/entity';
 
@@ -42,7 +42,7 @@ export class CurrencyPosition extends Entity<string> {
     amount: Money,
     code: CurrencyCode = CurrencyCode.BRL,
   ): CurrencyPosition {
-    return new CurrencyPosition(randomUUID(), graphicalAccountId, amount, code);
+    return new CurrencyPosition(uuidv7(), graphicalAccountId, amount, code);
   }
 
   static reconstitute(

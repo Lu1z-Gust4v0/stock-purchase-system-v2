@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { AssetPosition } from '@/modules/custody/domain/asset-position.entity';
 import { CurrencyPosition } from './currency-position.entity';
@@ -43,7 +43,7 @@ export class AccountCustody extends AggregateRoot<string> {
     currency: CurrencyPosition,
   ): AccountCustody {
     return new AccountCustody(
-      randomUUID(),
+      uuidv7(),
       graphicalAccountId,
       new Map(),
       currency,

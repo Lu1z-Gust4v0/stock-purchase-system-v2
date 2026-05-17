@@ -1,6 +1,6 @@
 import { Money } from '@/shared/domain/money.vo';
 import { Entity } from '@/shared/kernel/entity';
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 
 export interface DistributionItem {
   ticker: string;
@@ -54,7 +54,7 @@ export class Distribution extends Entity<string> {
     items: DistributionItem[],
   ): Distribution {
     return new Distribution(
-      randomUUID(),
+      uuidv7(),
       amount,
       origin,
       destination,

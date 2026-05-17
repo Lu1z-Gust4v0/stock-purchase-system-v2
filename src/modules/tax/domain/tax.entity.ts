@@ -1,6 +1,6 @@
 import { Money } from '@/shared/domain/money.vo';
 import { Entity } from '@/shared/kernel/entity';
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 
 export enum TaxType {
   SALE = 'SALE',
@@ -64,7 +64,7 @@ export class Tax extends Entity<string> {
     graphicalAccountId: string,
   ): Tax {
     return new Tax(
-      randomUUID(),
+      uuidv7(),
       type,
       baseAmount,
       amount,

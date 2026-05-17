@@ -2,7 +2,7 @@ import { AggregateRoot } from '@/shared/kernel/aggregate-root';
 import { MainDocumentCode } from '@/modules/customer/domain/value-objects/main-document-code.vo';
 import { Email } from '@/modules/customer/domain/value-objects/email.vo';
 import { MonthlyAmount } from '@/modules/customer/domain/value-objects/monthly-amount.vo';
-import { randomUUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 
 export interface CustomerProps {
   name: string;
@@ -57,7 +57,7 @@ export class Customer extends AggregateRoot<string> {
   }
 
   static create(props: Omit<CustomerProps, 'createdAt'>): Customer {
-    return new Customer(randomUUID(), {
+    return new Customer(uuidv7(), {
       ...props,
       createdAt: new Date(),
     });
