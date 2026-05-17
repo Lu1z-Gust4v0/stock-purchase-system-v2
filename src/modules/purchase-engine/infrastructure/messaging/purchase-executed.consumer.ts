@@ -48,7 +48,10 @@ export class PurchaseExecutedConsumer {
         purchaseTotalAmount: event.totalPurchase,
       });
       this.logger.debug(
-        { totalPurchase: event.totalPurchase, accountId: customer.graphicalAccountId },
+        {
+          totalPurchase: event.totalPurchase,
+          accountId: customer.graphicalAccountId,
+        },
         'Shares distributed to customer',
       );
     }
