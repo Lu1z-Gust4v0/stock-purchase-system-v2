@@ -1,98 +1,241 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Stock Purchase System V2
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A scheduled stock purchase system built as a **Modular Monolith** following **Hexagonal Architecture (Ports & Adapters)**. Clients subscribe to a recurring monthly investment plan into a "Top Five" recommended basket of stocks. The system executes consolidated purchases on a master broker account and distributes assets proportionally to each client's individual child account.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)
+![Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?logo=apachekafka&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-UI-85EA2D?logo=swagger&logoColor=black)
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Table of Contents
 
-## Project setup
+- [Overview](#overview)
+- [Domain Modules](#domain-modules)
+- [Architecture](#architecture)
+- [Scheduled Jobs](#scheduled-jobs)
+- [Event Flow](#event-flow)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
 
-```bash
-$ npm install
+---
+
+## Overview
+
+The system manages the full lifecycle of a recurring investment plan:
+
+1. An admin registers a **Top Five basket** of 5 stocks with allocation percentages.
+2. **Clients** subscribe with a monthly deposit amount (min R$ 100).
+3. On the **5th, 15th, and 25th of each month** (shifted to Monday if the day falls on a weekend), the purchase engine consolidates all client deposits, fetches B3 closing prices (COTAHIST), calculates lot sizes, and places orders on the master account.
+4. After purchase, assets are **distributed proportionally** to each client's graphical (child) account.
+5. When the basket changes, all client portfolios are **rebalanced** automatically (sell removed tickers, buy new ones).
+6. **Tax events** (regulatory withholding and monthly sales profit tax) are calculated and published to Kafka.
+
+---
+
+## Domain Modules
+
+| Module            | Responsibility                                                                                 |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `customer`        | Client lifecycle: subscribe, disable, update monthly deposit, portfolio view                   |
+| `basket`          | Top Five basket management: register, activate, history                                        |
+| `quote`           | B3 COTAHIST file parsing and historical price storage                                          |
+| `order`           | Buy order registration and lot-splitting (standard lot vs. fractional market)                  |
+| `custody`         | Asset positions per graphical account; balance (currency) tracking                             |
+| `purchase-engine` | Orchestrates the full purchase cycle: calculate → order → update custody → emit event          |
+| `rebalancing`     | Two strategies: basket-change rebalancing (event-driven) and deviation rebalancing (scheduled) |
+| `tax`             | Tax calculation and Kafka publishing: regulatory (0.005%) and sales profit tax (20%)           |
+
+---
+
+## Architecture
+
+Each module follows strict Hexagonal Architecture layers:
+
+```
+domain/          → Plain TypeScript classes, no framework decorators
+application/     → Use cases, ports (interfaces), DTOs
+infrastructure/  → Prisma repos, Kafka/RabbitMQ adapters, schedulers, controllers
+api/             → Public interface for cross-module synchronous calls
 ```
 
-## Compile and run the project
+**Cross-module communication:**
 
-```bash
-# development
-$ npm run start
+- **Synchronous** — via `api/` bridge interfaces (e.g., `purchase-engine` reads the active basket via `BasketApiInterface`).
+- **Asynchronous** — via RabbitMQ event bus: `BasketChangedEvent` triggers rebalancing; `PurchaseExecutedEvent` triggers regulatory tax publishing.
+- **External messaging** — Kafka is used exclusively for publishing tax events to downstream consumers.
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
+## Scheduled Jobs
+
+| Job                         | Schedule (UTC) | Description                                                                                  |
+| --------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
+| `ExecutePurchaseJob`        | `0 3 * * 1-5`  | Runs on weekdays; executes the purchase cycle on the 5th, 15th, 25th (weekend → next Monday) |
+| `RebalanceByDeviationJob`   | `0 3 * * 1-5`  | Daily deviation rebalancing for all active clients                                           |
+| `CustomerTaxesPublisherJob` | `0 3 1 * *`    | 1st of each month: calculates and publishes prior-month sales tax for all active clients     |
+
+---
+
+## Event Flow
+
+```
+register-basket.use-case  ──► BasketChangedEvent (RabbitMQ)
+                                        │
+                              basket-changed.consumer (rebalancing)
+                                        │
+                              rebalance-by-basket-change.use-case
+
+execute-purchase.use-case ──► PurchaseExecutedEvent (RabbitMQ)
+                                        │
+                              purchase-executed.consumer (purchase-engine)
+                                        │
+                              calculate-regulatory-tax → publish-tax → Kafka
 ```
 
-## Run tests
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 22+
+- Docker & Docker Compose
+
+### 1. Start infrastructure
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d
 ```
 
-## Deployment
+This starts PostgreSQL (5432), Kafka (9092), Kafka UI (8080), and RabbitMQ (5672 / management UI 15672).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Install dependencies
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Configure environment
 
-## Resources
+```bash
+cp .env.example .env
+# Edit .env if needed (defaults work with docker-compose)
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 4. Run database migrations and seed
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npx prisma migrate dev
+npx prisma db seed
+```
 
-## Support
+### 5. Start the application
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Development (watch mode)
+npm run start:dev
 
-## Stay in touch
+# Production
+npm run build && npm run start:prod
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## Environment Variables
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Variable                  | Default                                                        | Description                    |
+| ------------------------- | -------------------------------------------------------------- | ------------------------------ |
+| `PORT`                    | `3000`                                                         | HTTP server port               |
+| `DATABASE_URL`            | `postgresql://postgres:postgres@localhost:5432/stock_purchase` | Prisma connection string       |
+| `KAFKA_BROKER`            | `localhost:9092`                                               | Kafka bootstrap server         |
+| `KAFKA_CLIENT_ID`         | `stock-purchase`                                               | Kafka client identifier        |
+| `KAFKA_CONSUMER_GROUP_ID` | `stock-purchase-group`                                         | Kafka consumer group           |
+| `KAFKA_TAX_EVENTS_TOPIC`  | `tax-events`                                                   | Topic for tax event publishing |
+| `RABBITMQ_URL`            | `amqp://guest:guest@localhost:5672`                            | RabbitMQ connection string     |
+
+See `.env.example` for the full list.
+
+---
+
+## API Documentation
+
+Swagger UI is available at `http://localhost:3000/api` after starting the application.
+
+Main endpoints:
+
+| Method   | Path                       | Description                           |
+| -------- | -------------------------- | ------------------------------------- |
+| `POST`   | `/customers`               | Subscribe a new client                |
+| `PATCH`  | `/customers/:id/deposit`   | Update monthly deposit amount         |
+| `DELETE` | `/customers/:id`           | Disable a client                      |
+| `GET`    | `/customers/:id/portfolio` | Get client portfolio with performance |
+| `POST`   | `/admin/basket`            | Register a new Top Five basket        |
+| `GET`    | `/admin/basket/current`    | Get the active basket                 |
+| `GET`    | `/admin/basket/history`    | List all historical baskets           |
+| `POST`   | `/purchase-engine/execute` | Manually trigger a purchase cycle     |
+
+---
+
+## Project Structure
+
+```
+src/
+├── main.ts                          # Bootstrap, Swagger setup
+├── app.module.ts                    # Root module
+├── config/
+│   └── filters/                     # HTTP and Prisma exception filters
+├── shared/
+│   ├── kernel/                      # Entity, AggregateRoot, ValueObject base classes
+│   ├── domain/                      # Money value object
+│   ├── events/                      # DomainEvent interface + BasketChangedEvent, PurchaseExecutedEvent
+│   ├── errors/                      # DomainException
+│   └── infrastructure/
+│       ├── prisma/                  # PrismaService, PrismaModule
+│       ├── messaging/               # RabbitMQ event bus adapter
+│       ├── events/                  # LoggingEventBus (dev)
+│       └── logging/                 # nestjs-pino logger module
+└── modules/
+    ├── customer/                    # Client lifecycle
+    ├── basket/                      # Top Five basket
+    ├── quote/                       # B3 COTAHIST quotes
+    ├── order/                       # Buy order registration
+    ├── custody/                     # Asset positions & balances
+    ├── purchase-engine/             # Purchase orchestration
+    ├── rebalancing/                 # Portfolio rebalancing
+    └── tax/                         # Tax calculation & Kafka publishing
+```
+
+### Database schema highlights
+
+- `Client` — subscriber with `monthlyDeposit` and `active` flag
+- `GraphicalAccount` — broker account, `AccountType.MASTER | CHILD`
+- `Basket` / `BasketItem` — Top Five basket with ticker codes and allocation percentages
+- `Quote` — B3 daily closing prices, unique per `(date, code)`
+- `Order` — buy orders, `MarketType.SPOT | FRACTIONAL`
+- `Custody` — asset position per `(graphicalAccountId, code)`
+- `CustodyEvent` — audit log of PURCHASE / SALE / DISTRIBUTION events
+- `Currency` — cash balance per account (BRL)
+- `Distribution` — cash distribution records from master to child accounts
+- `TaxEvent` — tax events with `type: SALE | REGULATORY` and `published` flag
+
+---
+
+## Running Tests
+
+```bash
+# Unit tests
+npm run test
+
+# Unit tests with coverage
+npm run test:cov
+
+# E2E tests
+npm run test:e2e
+```
