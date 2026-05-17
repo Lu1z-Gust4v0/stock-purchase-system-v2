@@ -1,25 +1,31 @@
-import { ArgumentsHost, Catch, Logger } from '@nestjs/common';
-import { BaseRpcExceptionFilter } from '@nestjs/microservices';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
-import { Observable, throwError } from 'rxjs';
 
 @Catch()
-export class RmqExceptionFilter extends BaseRpcExceptionFilter {
+export class RmqExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(RmqExceptionFilter.name);
 
-  catch(error: unknown, host: ArgumentsHost): Observable<never> {
+  catch(error: Error, host: ArgumentsHost) {
+    // 1. Strictly ignore anything that isn't a microservice/RPC context
+    if (host.getType() !== 'rpc') {
+      return;
+    }
+
     const ctx = host.switchToRpc().getContext<RmqContext>();
-    const channel = ctx.getChannelRef() as {
-      nack: (msg: unknown, allUpTo: boolean, requeue: boolean) => void;
-    };
-    const originalMsg = ctx.getMessage();
 
-    this.logger.error(
-      `Message processing failed, sending to DLQ: ${(error as Error).message}`,
-    );
+    // 2. Extra safety check to make sure the RMQ methods exist
+    if (ctx && typeof ctx.getChannelRef === 'function') {
+      const channel = ctx.getChannelRef() as {
+        nack: (msg: unknown, allUpTo: boolean, requeue: boolean) => void;
+      };
+      const originalMsg = ctx.getMessage();
 
-    channel.nack(originalMsg, false, false);
+      this.logger.error(
+        `Message processing failed, sending to DLQ: ${error.message || error}`,
+      );
 
-    return throwError(() => error);
+      // Negative acknowledgement sends the message straight to your Dead Letter Queue
+      channel.nack(originalMsg, false, false);
+    }
   }
 }
