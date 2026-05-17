@@ -1,5 +1,6 @@
 import { Controller, Inject, UseFilters } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import type { Channel, Message } from 'amqplib';
 import { CUSTOMER_API } from '@/modules/customer/api/customer-api.interface';
 import { CUSTODY_API } from '@/modules/custody/api/custody-api.interface';
 import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.interface';
@@ -20,6 +21,7 @@ export class PurchaseExecutedConsumer {
   @UseFilters(new RmqExceptionFilter())
   async handle(
     @Payload() payload: ReturnType<PurchaseExecutedEvent['toJSON']>,
+    @Ctx() context: RmqContext,
   ): Promise<void> {
     const event = PurchaseExecutedEvent.fromJSON(payload);
 
@@ -35,5 +37,8 @@ export class PurchaseExecutedConsumer {
         purchaseTotalAmount: event.totalPurchase,
       });
     }
+
+    const channel = context.getChannelRef() as Channel;
+    channel.ack(context.getMessage() as Message);
   }
 }

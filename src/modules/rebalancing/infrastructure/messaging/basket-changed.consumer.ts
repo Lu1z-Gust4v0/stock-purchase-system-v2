@@ -1,5 +1,6 @@
 import { Controller, Inject, UseFilters } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import type { Channel, Message } from 'amqplib';
 import { BASKET_API } from '@/modules/basket/api/basket-api.interface';
 import { CUSTOMER_API } from '@/modules/customer/api/customer-api.interface';
 import type { BasketApiInterface } from '@/modules/basket/api/basket-api.interface';
@@ -21,6 +22,7 @@ export class BasketChangedConsumer {
   @UseFilters(new RmqExceptionFilter())
   async handle(
     @Payload() payload: ReturnType<BasketChangedEvent['toJSON']>,
+    @Ctx() context: RmqContext,
   ): Promise<void> {
     const event = BasketChangedEvent.fromJSON(payload);
 
@@ -40,5 +42,8 @@ export class BasketChangedConsumer {
         newBasket: newBasket,
       });
     }
+
+    const channel = context.getChannelRef() as Channel;
+    channel.ack(context.getMessage() as Message);
   }
 }
