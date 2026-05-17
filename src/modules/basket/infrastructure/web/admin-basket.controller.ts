@@ -6,12 +6,17 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RegisterBasketUseCase } from '@/modules/basket/application/use-cases/register-basket.use-case';
 import { GetCurrentBasketUseCase } from '@/modules/basket/application/use-cases/get-current-basket.use-case';
 import { ListBasketHistoryUseCase } from '@/modules/basket/application/use-cases/list-basket-history.use-case';
-import { type RegisterBasketRequestDto } from '@/modules/basket/application/dtos/register-basket-request.dto';
-import { BasketResponseDto } from '@/modules/basket/application/dtos/basket-response.dto';
+import { RegisterBasketRequest } from './requests/register-basket.request';
+import {
+  BasketResponse,
+  BasketResponseMapper,
+} from './responses/basket.response';
 
+@ApiTags('Baskets')
 @Controller('admin/baskets')
 export class AdminBasketController {
   constructor(
@@ -22,19 +27,26 @@ export class AdminBasketController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async register(
-    @Body() dto: RegisterBasketRequestDto,
-  ): Promise<BasketResponseDto> {
-    return await this.registerBasket.execute(dto);
+  @ApiOperation({ summary: 'Register a new recommendation basket' })
+  @ApiResponse({ status: 201, type: BasketResponse })
+  async register(@Body() dto: RegisterBasketRequest): Promise<BasketResponse> {
+    const result = await this.registerBasket.execute(dto);
+    return BasketResponseMapper.toResponse(result);
   }
 
   @Get('active')
-  async getActive(): Promise<BasketResponseDto> {
-    return await this.getCurrentBasket.execute();
+  @ApiOperation({ summary: 'Get the current active basket' })
+  @ApiResponse({ status: 200, type: BasketResponse })
+  async getActive(): Promise<BasketResponse> {
+    const result = await this.getCurrentBasket.execute();
+    return BasketResponseMapper.toResponse(result);
   }
 
   @Get()
-  async listHistory(): Promise<BasketResponseDto[]> {
-    return this.listBasketHistory.execute();
+  @ApiOperation({ summary: 'List all baskets history' })
+  @ApiResponse({ status: 200, type: [BasketResponse] })
+  async listHistory(): Promise<BasketResponse[]> {
+    const result = await this.listBasketHistory.execute();
+    return BasketResponseMapper.toResponseList(result);
   }
 }

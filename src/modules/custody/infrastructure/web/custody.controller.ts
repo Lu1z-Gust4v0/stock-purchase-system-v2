@@ -1,10 +1,13 @@
 import { Controller, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetAccountCustodyUseCase } from '../../application/use-cases/get-account-custody.usecase';
+import { GetAccountCustodyResponseMapper } from '../../application/dtos/get-account-custody-response.dto';
 import {
-  GetAccountCustodyResponseDto,
-  GetAccountCustodyResponseMapper,
-} from '../../application/dtos/get-account-custody-response.dto';
+  AccountCustodyResponse,
+  AccountCustodyResponseMapper,
+} from './responses/account-custody.response';
 
+@ApiTags('Custody')
 @Controller('custody')
 export class CustodyController {
   constructor(
@@ -13,10 +16,14 @@ export class CustodyController {
 
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get account custody positions and balance' })
+  @ApiParam({ name: 'accountId', description: 'Brokerage account ID' })
+  @ApiResponse({ status: 200, type: AccountCustodyResponse })
   async getAccountCustody(
     @Param('accountId') accountId: string,
-  ): Promise<GetAccountCustodyResponseDto> {
+  ): Promise<AccountCustodyResponse> {
     const custody = await this.getAccountCustodyUseCase.execute(accountId);
-    return GetAccountCustodyResponseMapper.toResponse(custody);
+    const dto = GetAccountCustodyResponseMapper.toResponse(custody);
+    return AccountCustodyResponseMapper.toResponse(dto);
   }
 }

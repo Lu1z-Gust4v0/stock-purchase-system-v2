@@ -10,14 +10,20 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CUSTOMER_API,
   type CustomerApiInterface,
 } from '../../api/customer-api.interface';
-import type { CreateCustomerRequestDto } from '../../application/dtos/create-customer-request.dto';
-import type { CustomerResponseDto } from '../../application/dtos/customer-response.dto';
-import type { GetCustomerPortfolioResponseDto } from '../../application/dtos/get-customer-portfolio-response.dto';
+import { CreateCustomerRequest } from './requests/create-customer.request';
+import { UpdateMonthlyDepositRequest } from './requests/update-monthly-deposit.request';
+import { CustomerResponse, CustomerResponseMapper } from './responses/customer.response';
+import {
+  CustomerPortfolioResponse,
+  CustomerPortfolioResponseMapper,
+} from './responses/customer-portfolio.response';
 
+@ApiTags('Customers')
 @Controller('customers')
 export class CustomerController {
   constructor(
@@ -27,32 +33,44 @@ export class CustomerController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new customer' })
+  @ApiResponse({ status: 201, type: CustomerResponse })
   async createCustomer(
-    @Body() body: CreateCustomerRequestDto,
-  ): Promise<CustomerResponseDto> {
-    return this.customerApi.createCustomer(body);
+    @Body() body: CreateCustomerRequest,
+  ): Promise<CustomerResponse> {
+    const result = await this.customerApi.createCustomer(body);
+    return CustomerResponseMapper.toResponse(result);
   }
 
   @Patch(':id/monthly-deposit')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Update customer monthly deposit amount' })
+  @ApiParam({ name: 'id', description: 'Customer ID' })
+  @ApiResponse({ status: 204, description: 'Updated successfully' })
   async updateMonthlyDeposit(
     @Param('id') id: string,
-    @Body() body: { monthlyDeposit: number },
+    @Body() body: UpdateMonthlyDepositRequest,
   ): Promise<void> {
     return this.customerApi.updateCustomerDeposit(id, body.monthlyDeposit);
   }
 
   @Put(':id/deactivate')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Deactivate a customer' })
+  @ApiParam({ name: 'id', description: 'Customer ID' })
+  @ApiResponse({ status: 204, description: 'Deactivated successfully' })
   async deactivateCustomer(@Param('id') id: string): Promise<void> {
     return this.customerApi.disableCustomer(id);
   }
 
   @Get(':id/portfolio')
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get customer portfolio summary' })
+  @ApiParam({ name: 'id', description: 'Customer ID' })
+  @ApiResponse({ status: 200, type: CustomerPortfolioResponse })
   async getCustomerPortfolio(
     @Param('id') id: string,
-  ): Promise<GetCustomerPortfolioResponseDto> {
-    return this.customerApi.getCustomerPortfolio(id);
+  ): Promise<CustomerPortfolioResponse> {
+    const result = await this.customerApi.getCustomerPortfolio(id);
+    return CustomerPortfolioResponseMapper.toResponse(result);
   }
 }

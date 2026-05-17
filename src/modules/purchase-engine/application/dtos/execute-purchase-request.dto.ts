@@ -1,3 +1,3 @@
 export class ExecutePurchaseRequestDto {
-  referenceDate: Date;
+  referenceDate!: Date;
 }

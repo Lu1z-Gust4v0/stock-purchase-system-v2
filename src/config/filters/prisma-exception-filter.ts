@@ -3,16 +3,12 @@ import {
   Catch,
   ExceptionFilter,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Prisma } from '@/generated/prisma/client';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(PrismaExceptionFilter.name);
-
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
