@@ -1,4 +1,9 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Kafka, Producer } from 'kafkajs';
 import type { TaxEventPublisherPort } from '@/modules/tax/application/ports/tax-event-publisher.port';
 import type { WithholdingTaxEventDto } from '@/modules/tax/application/dtos/withholding-tax-event.dto';
@@ -11,6 +16,8 @@ const SALE_TAX_TOPIC = 'tax-sale-events';
 export class KafkaTaxEventPublisher
   implements TaxEventPublisherPort, OnModuleInit, OnModuleDestroy
 {
+  private readonly logger = new Logger(KafkaTaxEventPublisher.name);
+
   private readonly producer: Producer;
 
   constructor() {
@@ -30,16 +37,20 @@ export class KafkaTaxEventPublisher
   }
 
   publishWithholdingTax(event: WithholdingTaxEventDto): void {
-    this.producer.send({
-      topic: WITHHOLDING_TAX_TOPIC,
-      messages: [{ value: JSON.stringify(event) }],
-    });
+    this.producer
+      .send({
+        topic: WITHHOLDING_TAX_TOPIC,
+        messages: [{ value: JSON.stringify(event) }],
+      })
+      .catch((err) => this.logger.error('Failed to publish tax event', err));
   }
 
   publishSaleTax(event: SaleTaxEventDto): void {
-    this.producer.send({
-      topic: SALE_TAX_TOPIC,
-      messages: [{ value: JSON.stringify(event) }],
-    });
+    this.producer
+      .send({
+        topic: SALE_TAX_TOPIC,
+        messages: [{ value: JSON.stringify(event) }],
+      })
+      .catch((err) => this.logger.error('Failed to publish tax event', err));
   }
 }
