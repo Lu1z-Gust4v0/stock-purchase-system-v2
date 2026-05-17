@@ -1,4 +1,4 @@
-import { Controller, Inject } from '@nestjs/common';
+import { Controller, Inject, UseFilters } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { CUSTOMER_API } from '@/modules/customer/api/customer-api.interface';
 import { CUSTODY_API } from '@/modules/custody/api/custody-api.interface';
@@ -6,6 +6,7 @@ import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.i
 import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.interface';
 import { PurchaseExecutedEvent } from '@/shared/events/domain-events/purchase-executed.event';
 import { DistributeSharesUseCase } from '../../application/use-cases/distribute-shares.use-case';
+import { RmqExceptionFilter } from '@/shared/infrastructure/messaging/rmq-exception.filter';
 
 @Controller()
 export class PurchaseExecutedConsumer {
@@ -16,6 +17,7 @@ export class PurchaseExecutedConsumer {
   ) {}
 
   @EventPattern(PurchaseExecutedEvent.name)
+  @UseFilters(new RmqExceptionFilter())
   async handle(
     @Payload() payload: ReturnType<PurchaseExecutedEvent['toJSON']>,
   ): Promise<void> {

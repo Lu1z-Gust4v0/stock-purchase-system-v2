@@ -1,4 +1,4 @@
-import { Controller, Inject } from '@nestjs/common';
+import { Controller, Inject, UseFilters } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { BASKET_API } from '@/modules/basket/api/basket-api.interface';
 import { CUSTOMER_API } from '@/modules/customer/api/customer-api.interface';
@@ -7,6 +7,7 @@ import type { CustomerApiInterface } from '@/modules/customer/api/customer-api.i
 import { BasketChangedEvent } from '@/shared/events/domain-events/basket-changed.event';
 import { DomainError } from '@/shared/errors/domain.exception';
 import { RebalanceByBasketChangeUseCase } from '../../application/use-cases/rebalance-by-basket-change.use-case';
+import { RmqExceptionFilter } from '@/shared/infrastructure/messaging/rmq-exception.filter';
 
 @Controller()
 export class BasketChangedConsumer {
@@ -17,6 +18,7 @@ export class BasketChangedConsumer {
   ) {}
 
   @EventPattern(BasketChangedEvent.name)
+  @UseFilters(new RmqExceptionFilter())
   async handle(
     @Payload() payload: ReturnType<BasketChangedEvent['toJSON']>,
   ): Promise<void> {

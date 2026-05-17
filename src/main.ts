@@ -4,8 +4,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from '@/app.module';
 import { HttpExceptionFilter } from './config/filters/http-exception-filter';
 import { PrismaExceptionFilter } from './config/filters/prisma-exception-filter';
-import { RmqExceptionFilter } from './shared/infrastructure/messaging/rmq-exception.filter';
-
 const QUEUE = 'stock-purchase.events';
 
 async function bootstrap() {
@@ -35,11 +33,7 @@ async function bootstrap() {
     },
   });
 
-  app.useGlobalFilters(
-    new RmqExceptionFilter(),
-    new PrismaExceptionFilter(),
-    new HttpExceptionFilter(),
-  );
+  app.useGlobalFilters(new PrismaExceptionFilter(), new HttpExceptionFilter());
 
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3000);
