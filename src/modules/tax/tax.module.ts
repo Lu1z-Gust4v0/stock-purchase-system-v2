@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/shared/infrastructure/prisma/prisma.module';
 import { CustodyModule } from '@/modules/custody/custody.module';
+import { CustomerModule } from '@/modules/customer/customer.module';
 import { CUSTODY_API } from '@/modules/custody/api/custody-api.interface';
 import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.interface';
 import {
@@ -18,9 +19,11 @@ import { CalculateSalesTaxUseCase } from './application/use-cases/calculate-sale
 import { PublishTaxUseCase } from './application/use-cases/publish-tax.usecase';
 import { TAX_API } from './api/tax-api.interface';
 import { TaxApi } from './api/tax.api';
+import { CustomerTaxesPublisherJob } from './infrastructure/jobs/customer-taxes-publisher.job';
 
 @Module({
-  imports: [PrismaModule, CustodyModule],
+  imports: [PrismaModule, CustodyModule, CustomerModule],
+  controllers: [CustomerTaxesPublisherJob],
   providers: [
     {
       provide: TAX_REPOSITORY,
