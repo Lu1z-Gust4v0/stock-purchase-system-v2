@@ -14,22 +14,19 @@ export class RmqExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToRpc().getContext<RmqContext>();
 
     // 2. Extra safety check to make sure the RMQ methods exist
-    if (ctx && typeof ctx.getChannelRef === 'function') {
-      const channel = ctx.getChannelRef() as {
-        nack: (msg: unknown, allUpTo: boolean, requeue: boolean) => void;
-      };
-      const originalMsg = ctx.getMessage();
+    const channel = ctx.getChannelRef() as {
+      nack: (msg: unknown, allUpTo: boolean, requeue: boolean) => void;
+    };
+    const originalMsg = ctx.getMessage();
 
-      // Safely parse the message regardless of error instance type
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+    // Safely parse the message regardless of error instance type
+    const errorMessage = error instanceof Error ? error.message : String(error);
 
-      this.logger.error(
-        `Message processing failed, sending to DLQ: ${errorMessage}`,
-      );
+    this.logger.error(
+      `Message processing failed, sending to DLQ: ${errorMessage}`,
+    );
 
-      // Negative acknowledgement sends the message straight to your Dead Letter Queue
-      channel.nack(originalMsg, false, false);
-    }
+    // Negative acknowledgement sends the message straight to your Dead Letter Queue
+    channel.nack(originalMsg, false, false);
   }
 }

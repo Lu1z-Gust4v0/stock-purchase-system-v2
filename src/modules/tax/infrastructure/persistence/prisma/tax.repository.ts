@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
 import type { TaxRepositoryPort } from '@/modules/tax/application/ports/tax-repository.port';
 import type { Tax } from '@/modules/tax/domain/tax.entity';
 
+@Injectable()
 export class TaxRepository implements TaxRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

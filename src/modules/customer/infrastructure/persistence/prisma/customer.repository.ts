@@ -1,9 +1,11 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
 import { CustomerRepositoryPort } from '@/modules/customer/application/ports/customer-repository.port';
 import { Customer } from '@/modules/customer/domain/customer.entity';
 import { CustomerMapper } from '../mappers/customer.mapper';
 import { Money } from '@/shared/domain/money.vo';
 
+@Injectable()
 export class CustomerRepository implements CustomerRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -62,7 +64,7 @@ export class CustomerRepository implements CustomerRepositoryPort {
       where: { active: true },
       include: { graphicalAccount: { select: { id: true } } },
     });
-    return records.map(CustomerMapper.toDomain);
+    return records.map((record) => CustomerMapper.toDomain(record));
   }
 
   async countActiveClients(): Promise<number> {

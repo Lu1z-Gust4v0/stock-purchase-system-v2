@@ -1,9 +1,11 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
 import { CustodyRepositoryPort } from '@/modules/custody/application/ports/custody-repository.port';
 import { AccountCustody } from '@/modules/custody/domain/account-custody.entity';
 import { CustodyMapper } from '../mappers/custody.mapper';
 import { CurrencyMapper } from '../mappers/currency.mapper';
 
+@Injectable()
 export class CustodyRepository implements CustodyRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
