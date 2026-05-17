@@ -17,54 +17,40 @@ services:
       timeout: 5s
       retries: 5
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.0
-    container_name: stock_purchase_zookeeper
-    restart: unless-stopped
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_log:/var/lib/zookeeper/log
-
   kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: stock_purchase_kafka
-    restart: unless-stopped
-    depends_on:
-      - zookeeper
+    image: apache/kafka:latest
+    container_name: kafka_dev
     ports:
-      - '${KAFKA_EXTERNAL_PORT}:29092'
+      - '9092:9092' # This is for your IDE/App (Host)
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:${KAFKA_EXTERNAL_PORT}
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # We define two ways to talk to Kafka:
+      # 1. EXTERNAL: For your computer (localhost)
+      # 2. INTERNAL: For the Kafka UI (kafka)
+      - KAFKA_LISTENERS=EXTERNAL://:9092,INTERNAL://:9094,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=EXTERNAL://localhost:9092,INTERNAL://kafka:9094
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
     volumes:
       - kafka_data:/var/lib/kafka/data
-    healthcheck:
-      test:
-        ['CMD-SHELL', 'kafka-topics --bootstrap-server localhost:9092 --list']
-      interval: 15s
-      timeout: 10s
-      retries: 5
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: stock_purchase_kafka_ui
-    restart: unless-stopped
+    container_name: kafka_ui
+    ports:
+      - '8080:8080'
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      # Connect to the INTERNAL port (9094)
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
     depends_on:
       - kafka
-    ports:
-      - '${KAFKA_UI_PORT}:8080'
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -85,7 +71,5 @@ services:
 
 volumes:
   postgres_data:
-  zookeeper_data:
-  zookeeper_log:
   kafka_data:
   rabbitmq_data:
