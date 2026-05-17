@@ -1,5 +1,6 @@
 import { DomainError } from '../errors/domain.exception';
 import { ValueObject } from '../kernel/value-object';
+import { formatters } from '../utils/formatters';
 
 export enum Currency {
   BRL = 'BRL',
@@ -27,19 +28,7 @@ export class Money extends ValueObject<MoneyProps> {
     if (!Number.isFinite(amount)) {
       throw new DomainError('Invalid monetary amount: not finite');
     }
-    return new Money({ amount: Money.bankersRound(amount), currency });
-  }
-
-  // Round half to even (banker's rounding) at 4 decimal places
-  private static bankersRound(value: number, decimals: number = 4): number {
-    const factor = 10 ** decimals;
-    const shifted = value * factor;
-    const floored = Math.floor(shifted);
-    const remainder = shifted - floored;
-    if (Math.abs(remainder - 0.5) < Number.EPSILON) {
-      return (floored % 2 === 0 ? floored : floored + 1) / factor;
-    }
-    return Math.round(shifted) / factor;
+    return new Money({ amount: formatters.number(amount), currency });
   }
 
   static zero(currency: Currency = Currency.BRL): Money {

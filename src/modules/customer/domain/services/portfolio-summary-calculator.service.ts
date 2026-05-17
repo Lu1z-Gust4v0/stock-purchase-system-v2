@@ -3,6 +3,7 @@ import type { CustodyApiInterface } from '@/modules/custody/api/custody-api.inte
 import type { QuotesApiInterface } from '@/modules/quote/api/quotes-api.interface';
 import { Money } from '@/shared/domain/money.vo';
 import { DomainError } from '@/shared/errors/domain.exception';
+import { formatters } from '@/shared/utils/formatters';
 import { Injectable } from '@nestjs/common';
 
 type StockSummary = {
@@ -54,8 +55,9 @@ export class PortfolioSummaryCalculator {
     );
 
     const totalEarnings = portfolioAmount.subtract(distributionVolume);
-    const earningsPercentage =
-      (totalEarnings.amount / distributionVolume.amount) * 100;
+    const earningsPercentage = formatters.percentage(
+      totalEarnings.amount / distributionVolume.amount,
+    );
 
     const stockSummaries = this.calculateStockSummaries(
       accountCustody,
@@ -98,9 +100,12 @@ export class PortfolioSummaryCalculator {
       const currentPrice = this.getPriceOrThrow(ticker, prices);
       const earnings = currentPrice.subtract(averagePrice).multiply(quantity);
       const currentAmount = currentPrice.multiply(quantity);
-      const earningsPercentage =
-        (earnings.amount / (averagePrice.amount * quantity)) * 100;
-      const allocation = (currentAmount.amount / portfolioAmount.amount) * 100;
+      const earningsPercentage = formatters.percentage(
+        earnings.amount / (averagePrice.amount * quantity),
+      );
+      const allocation = formatters.percentage(
+        currentAmount.amount / portfolioAmount.amount,
+      );
 
       return {
         ticker,
@@ -126,7 +131,7 @@ export class PortfolioSummaryCalculator {
 
     const quotes = await this.quotesApi.getQuotes(
       Array.from(tickers),
-      new Date('2026-02-02'),
+      new Date(),
     );
 
     return new Map(quotes.map((quote) => [quote.ticker, quote.closingPrice]));
