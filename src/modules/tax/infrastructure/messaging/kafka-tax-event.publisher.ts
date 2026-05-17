@@ -4,7 +4,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { Kafka, Producer } from 'kafkajs';
+import { Admin, Kafka, Producer } from 'kafkajs';
 import type { TaxEventPublisherPort } from '@/modules/tax/application/ports/tax-event-publisher.port';
 import type { WithholdingTaxEventDto } from '@/modules/tax/application/dtos/withholding-tax-event.dto';
 import type { SaleTaxEventDto } from '@/modules/tax/application/dtos/sale-tax-event.dto';
@@ -19,6 +19,7 @@ export class KafkaTaxEventPublisher
   private readonly logger = new Logger(KafkaTaxEventPublisher.name);
 
   private readonly producer: Producer;
+  private readonly admin: Admin;
 
   constructor() {
     const kafka = new Kafka({
@@ -26,9 +27,19 @@ export class KafkaTaxEventPublisher
       brokers: [process.env.KAFKA_BROKER ?? 'localhost:9092'],
     });
     this.producer = kafka.producer();
+    this.admin = kafka.admin();
   }
 
   async onModuleInit(): Promise<void> {
+    await this.admin.connect();
+    await this.admin.createTopics({
+      waitForLeaders: true,
+      topics: [
+        { topic: WITHHOLDING_TAX_TOPIC },
+        { topic: SALE_TAX_TOPIC },
+      ],
+    });
+    await this.admin.disconnect();
     await this.producer.connect();
   }
 
