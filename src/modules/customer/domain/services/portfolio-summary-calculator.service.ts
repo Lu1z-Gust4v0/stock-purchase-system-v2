@@ -55,7 +55,7 @@ export class PortfolioSummaryCalculator {
 
     const totalEarnings = portfolioAmount.subtract(distributionVolume);
     const earningsPercentage =
-      totalEarnings.amount / distributionVolume.amount / 100;
+      (totalEarnings.amount / distributionVolume.amount) * 100;
 
     const stockSummaries = this.calculateStockSummaries(
       accountCustody,
@@ -126,7 +126,7 @@ export class PortfolioSummaryCalculator {
 
     const quotes = await this.quotesApi.getQuotes(
       Array.from(tickers),
-      new Date(),
+      new Date('2026-02-02'),
     );
 
     return new Map(quotes.map((quote) => [quote.ticker, quote.closingPrice]));
