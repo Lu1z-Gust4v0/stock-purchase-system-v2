@@ -23,6 +23,7 @@ A scheduled stock purchase system built as a **Modular Monolith** following **He
 - [Environment Variables](#environment-variables)
 - [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
+- [Future Improvements](#future-improvements)
 
 ---
 
@@ -239,3 +240,9 @@ npm run test:cov
 # E2E tests
 npm run test:e2e
 ```
+
+---
+
+## Future Improvements
+
+See [future-improvements.md](./future-improvements.md) for a prioritized list of planned enhancements covering resilience, test coverage, authentication, leftover share distribution, observability, and a frontend.
