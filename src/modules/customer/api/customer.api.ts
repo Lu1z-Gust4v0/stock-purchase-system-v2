@@ -45,7 +45,9 @@ export class CustomerApi implements CustomerApiInterface {
 
   async getActiveClients(): Promise<CustomerResponseDto[]> {
     const customers = await this.customerRepo.findAllActive();
-    return customers.map(CustomerResponseMapper.toResponse);
+    return customers.map((customer) =>
+      CustomerResponseMapper.toResponse(customer),
+    );
   }
 
   async countActiveClients(): Promise<number> {
