@@ -52,7 +52,7 @@ const clients = [
 ];
 
 function randomDeposit(): number {
-  return Math.round((Math.random() * 49500 + 500) * 100) / 100;
+  return Math.round((Math.random() * 99500 + 500) * 100) / 100;
 }
 
 function accountNumber(index: number): string {
@@ -86,7 +86,7 @@ async function main() {
       name: 'Master Account',
       email: 'master@stockpurchaser.com',
       mainDocumentCode: '71800677090',
-      monthlyDeposit: 0,
+      monthlyDeposit: 9999,
       graphicalAccount: {
         create: {
           account: '000000-0',
