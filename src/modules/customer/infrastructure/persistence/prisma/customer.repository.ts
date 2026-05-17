@@ -51,7 +51,7 @@ export class CustomerRepository implements CustomerRepositoryPort {
   async getMonthlyTotalClientDeposit(): Promise<Money> {
     const aggregate = await this.prisma.client.aggregate({
       _sum: { monthlyDeposit: true },
-      where: { active: true },
+      where: { active: true, graphicalAccount: { type: 'CHILD' } },
     });
 
     const total = aggregate._sum.monthlyDeposit?.toNumber() ?? 0;
@@ -74,7 +74,7 @@ export class CustomerRepository implements CustomerRepositoryPort {
 
   async countActiveClients(): Promise<number> {
     return await this.prisma.client.count({
-      where: { active: true },
+      where: { active: true, graphicalAccount: { type: 'CHILD' } },
     });
   }
 }
