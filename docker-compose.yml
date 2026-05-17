@@ -50,7 +50,8 @@ services:
       # Connect to the INTERNAL port (9094)
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
     depends_on:
-      - kafka
+      kafka:
+        condition: service_started
 
   rabbitmq:
     image: rabbitmq:3.13-management
