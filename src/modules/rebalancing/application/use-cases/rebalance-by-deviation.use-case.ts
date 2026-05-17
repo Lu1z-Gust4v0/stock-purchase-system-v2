@@ -18,6 +18,11 @@ export class RebalanceByDeviationUseCase {
     const accountCustody =
       await this.custodyApi.getAccountCustody(customerAccountId);
 
+    // No shares, skip it
+    if (Object.keys(accountCustody.positions).length === 0) {
+      return;
+    }
+
     const { orders, changes, leftovers } =
       await this.byDeviationCalculator.calculate({
         accountCustody: accountCustody,
