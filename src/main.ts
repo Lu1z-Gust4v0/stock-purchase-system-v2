@@ -1,13 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from '@/app.module';
 import { HttpExceptionFilter } from './config/filters/http-exception-filter';
 import { PrismaExceptionFilter } from './config/filters/prisma-exception-filter';
 const QUEUE = 'stock-purchase.events';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Stock Purchase API')

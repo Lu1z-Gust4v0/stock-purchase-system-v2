@@ -7,11 +7,13 @@ import { BasketModule } from '@/modules/basket/basket.module';
 import { QuoteModule } from '@/modules/quote/quote.module';
 import { PurchaseEngineModule } from '@/modules/purchase-engine/purchase-engine.module';
 import { RebalancingModule } from '@/modules/rebalancing/rebalancing.module';
+import { AppLoggerModule } from '@/shared/infrastructure/logging/logger.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    AppLoggerModule,
     BasketModule,
     QuoteModule,
     PurchaseEngineModule,
