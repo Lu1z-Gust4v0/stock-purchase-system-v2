@@ -84,7 +84,7 @@ export class PortfolioSummaryCalculator {
         (prev, curr) =>
           prev +
           this.getPriceOrThrow(curr.ticker, prices).amount * curr.quantity,
-        0,
+        accountCustody.currency.amount.amount,
       ),
     );
   }
